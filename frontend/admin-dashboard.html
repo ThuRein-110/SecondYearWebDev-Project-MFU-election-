@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - MFU Election</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="public/css/admin-dashboard.css">
+</head>
+<body>
+    <div class="header">
+        <div class="logo">MFU Election</div>
+        <div class="user-info">
+            <span>Welcome, Admin</span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+    <div class="container">
+        <div class="sidebar">
+            <nav>
+                <a href="#" class="nav-item active" onclick="showSection('dashboard')">
+                    <span>📊</span> Dashboard
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('voters')">
+                    <span>👥</span> Voters Management
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('candidates')">
+                    <span>👤</span> Candidates Management
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('results')">
+                    <span>📈</span> View Results
+                </a>
+            </nav>
+        </div>
+        <div class="main-content">
+            <div id="dashboard-section" class="section active">
+                <h1>Dashboard Overview</h1>
+                <div class="stats-grid" id="stats"></div>
+                <div class="quick-actions">
+                    <div class="action-card" onclick="toggleVoting()" id="voting-card">
+                        <h3 id="voting-title">🟢 Enable Voting</h3>
+                        <p>Control the voting process</p>
+                    </div>
+                    <div class="action-card" onclick="showSection('voters')">
+                        <h3>👥 Manage Voters</h3>
+                        <p>Enable/disable voter accounts</p>
+                    </div>
+                    <div class="action-card" onclick="showSection('candidates')">
+                        <h3>👤 Manage Candidates</h3>
+                        <p>Control candidate participation</p>
+                    </div>
+                </div>
+            </div>
+            <div id="voters-section" class="section">
+                <h1>Voters Management</h1>
+                <div class="table-container">
+                    <table id="voters-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Citizen ID</th>
+                                <th>Laser ID</th>
+                                <th>Status</th>
+                                <th>Voted</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="candidates-section" class="section">
+                <h1>Candidates Management</h1>
+                <div class="table-container">
+                    <table id="candidates-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Candidate ID</th>
+                                <th>Name</th>
+                                <th>Policy</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="results-section" class="section">
+                <h1>Election Results</h1>
+                <div class="results-grid" id="results-list"></div>
+            </div>
+        </div>
+    </div>
+    <script src="public/js/admin-dashboard.js"></script>
+</body>
+</html>

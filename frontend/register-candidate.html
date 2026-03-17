@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MFU Election - Candidate Registration</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="public/css/login.css">
+</head>
+<body>
+
+<div class="page">
+
+    <!-- HEADER -->
+    <div class="top-header">
+        <div class="logo">
+            <i class="fa-solid fa-square-check"></i>
+            <span>MFU Election Voting</span>
+        </div>
+        <div class="subtitle">
+            University Student Council General Election<br>
+            2024
+        </div>
+    </div>
+
+    <!-- LOGIN CARD -->
+    <div class="login-card">
+
+        <div class="verified">
+            <i class="fa-solid fa-shield-halved"></i>
+            SYSTEM SECURE & VERIFIED
+        </div>
+
+        <h2>Candidate Registration Portal</h2>
+        <p class="desc">Join the MFU Student Council Election</p>
+
+        <!-- Candidate Icon -->
+        <div class="fingerprint-box">
+            <i class="fa-solid fa-user-plus"></i>
+        </div>
+
+        <form onsubmit="event.preventDefault(); submitRegistration();">
+
+            <label>CANDIDATE ID</label>
+            <input id="candidate-id" type="text" placeholder="Enter candidate ID" required autocomplete="off" />
+
+            <label>FULL NAME</label>
+            <input id="candidate-name" type="text" placeholder="Your full name" required autocomplete="off" />
+
+            <label>CAMPAIGN QUOTE</label>
+            <input id="candidate-policy" type="text" placeholder="Short campaign quote" required autocomplete="off" />
+
+            <button class="btn">
+                Register as Candidate
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+
+        </form>
+
+        <!-- Info -->
+        <div class="security-box">
+            <b>Candidate Registration</b>
+            <p>
+            This registration form is a UI prototype. Candidate approval requires
+            administrator verification before appearing on the ballot.
+        </div>
+
+        <div class="links">
+            <span>Need help?</span>
+            <a href="#">Help Center</a>
+        </div>
+
+        <div class="bottom-links">
+            <a href="login.html">Back to Voter Login</a>
+            •
+            <a href="admin-login.html">Administrator Login</a>
+        </div>
+
+    </div>
+
+</div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('year').textContent = new Date().getFullYear();
+    });
+
+    async function submitRegistration() {
+      alert('Candidate registration is not available in this demo.');
+    }
+  </script>
+</body>
+</html>

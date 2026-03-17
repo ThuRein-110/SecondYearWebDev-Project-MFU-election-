@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MFU Election - Admin Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="public/css/login.css">
+</head>
+<body>
+
+<div class="page">
+
+    <!-- HEADER -->
+    <div class="top-header">
+        <div class="logo">
+            <i class="fa-solid fa-square-check"></i>
+            <span>MFU Election Voting</span>
+        </div>
+        <div class="subtitle">
+            University Student Council General Election<br>
+            2024
+        </div>
+    </div>
+
+    <!-- LOGIN CARD -->
+    <div class="login-card">
+
+        <div class="verified">
+            <i class="fa-solid fa-shield-halved"></i>
+            SYSTEM SECURE & VERIFIED
+        </div>
+
+        <h2>Administrator Access Portal</h2>
+        <p class="desc">Manage the MFU Election System</p>
+
+        <!-- Admin Icon -->
+        <div class="fingerprint-box">
+            <i class="fa-solid fa-user-shield"></i>
+        </div>
+
+        <form onsubmit="event.preventDefault(); submitAdminLogin();">
+
+            <label>USERNAME</label>
+            <input id="admin-username" type="text" placeholder="Admin username" required autocomplete="off" />
+
+            <label>PASSWORD</label>
+            <input id="admin-password" type="password" placeholder="Password" required autocomplete="off" />
+
+            <button class="btn">
+                Sign In as Admin
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+
+        </form>
+
+        <!-- Security info -->
+        <div class="security-box">
+            <b>Administrator Access</b>
+            <p>
+            Administrative privileges allow you to manage voters, candidates,
+            and monitor election results. Access is logged and audited.
+        </div>
+
+        <div class="links">
+            <span>Need help?</span>
+            <a href="#">Help Center</a>
+        </div>
+
+        <div class="bottom-links">
+            <a href="login.html">Back to Voter Login</a>
+            •
+            <a href="register-candidate.html">Candidate Registration</a>
+        </div>
+
+    </div>
+
+</div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('year').textContent = new Date().getFullYear();
+    });
+
+    async function submitAdminLogin() {
+      const username = document.getElementById('admin-username').value.trim();
+      const password = document.getElementById('admin-password').value.trim();
+
+      if (!username || !password) {
+        alert('Please enter both username and password.');
+        return;
+      }
+
+      const response = await fetch('/login/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const result = await response.json();
+      if (result.success) {
+        window.location.href = 'admin-dashboard.html';
+      } else {
+        alert(result.message || 'Login failed.');
+      }
+    }
+  </script>
+</body>
+</html>

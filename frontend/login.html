@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MFU Election Voting</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<link rel="stylesheet" href="public/css/login.css">
+</head>
+
+<body>
+
+<div class="page">
+
+    <!-- HEADER -->
+    <div class="top-header">
+        <div class="logo">
+            <i class="fa-solid fa-square-check"></i>
+            <span>MFU Election Voting</span>
+        </div>
+        <div class="subtitle">
+            University Student Council General Election<br>
+            2024
+        </div>
+    </div>
+
+    <!-- LOGIN CARD -->
+    <div class="login-card">
+
+        <div class="verified">
+            <i class="fa-solid fa-shield-halved"></i>
+            SYSTEM SECURE & VERIFIED
+        </div>
+
+        <h2>Voter Access Portal</h2>
+        <p class="desc">Verify your identity to proceed to the ballot</p>
+
+        <!-- Fingerprint -->
+        <div class="fingerprint-box">
+            <i class="fa-solid fa-fingerprint"></i>
+        </div>
+
+        <form onsubmit="event.preventDefault(); submitLogin();">
+
+            <label>THAI CITIZEN ID</label>
+            <input id="citizen-id" type="text" placeholder="X-XXXX-XXXXX-XX-X">
+            <small>13-digit identification number</small>
+
+            <label>LASER ID (BACK OF CARD)</label>
+            <input id="laser-id" type="text" placeholder="ME-XXXXXXXXX">
+            <small>Located on the reverse side of your national ID card</small>
+
+            <button type="submit" class="btn">
+                Sign In to Vote
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+
+        </form>
+
+        <!-- Security info -->
+        <div class="security-box">
+            <b>Secure Voting Protocol</b>
+            <p>
+            Your vote is encrypted and anonymous. We use your ID only
+            for eligibility verification and to prevent double-voting.
+            </p>
+        </div>
+
+        <!-- links -->
+        <div class="links">
+            <span>Having trouble logging in?</span>
+            <a href="#">Help Center</a>
+        </div>
+
+        <div class="bottom-links">
+            <a href="register-candidate.html">Candidate Registration</a>
+            •
+            <a href="admin-login.html">Administrator Login</a>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Voting Regulations</a>
+        <a href="#">Election Bylaws</a>
+    </div>
+
+</div>
+
+<script src="public/js/login.js"></script>
+</body>
+</html>

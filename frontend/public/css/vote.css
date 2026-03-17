@@ -1,0 +1,139 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #F5F7FA;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1F2937;
+}
+
+.container {
+    background: #FFFFFF;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    width: 100%;
+    max-width: 1000px;
+    border: 1px solid #E5E7EB;
+}
+
+h2 {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    color: #1F2937;
+    margin-bottom: 32px;
+}
+
+.candidates {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.candidate {
+    background: #FFFFFF;
+    border: 2px solid #E5E7EB;
+    padding: 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.candidate:hover {
+    border-color: #3B82F6;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+    transform: translateY(-4px);
+}
+
+.candidate h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #3B82F6;
+    margin-bottom: 12px;
+}
+
+.candidate p {
+    font-size: 14px;
+    color: #6B7280;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.2s;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.btn-secondary {
+    background: #6B7280;
+    color: #FFFFFF;
+}
+
+.btn-secondary:hover {
+    background: #4B5563;
+    transform: translateY(-1px);
+}
+
+.security-notice {
+    margin-top: 32px;
+    padding: 20px;
+    background: #FEF3C7;
+    border: 1px solid #F59E0B;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #92400E;
+    text-align: left;
+}
+
+.security-notice strong {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 24px;
+        margin: 16px;
+    }
+
+    .candidates {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    h2 {
+        font-size: 24px;
+    }
+}
