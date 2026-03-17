@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Vote Receipt</title>
+
+<style>
+:root {
+    --bg: #f3f6fb;
+    --card: #ffffff;
+    --border: rgba(59,132,246,0.3);
+    --accent: #2563eb;
+    --accent-strong: #1d4ed8;
+    --text-dark: #0f172a;
+    --muted: #475467;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at top, #ffffff 0%, #eef1f5 40%, var(--bg) 100%);
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.container {
+    width: min(520px, 100%);
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.card {
+    background: var(--card);
+    border-radius: 24px;
+    padding: 32px;
+    margin-top: 24px;
+    box-shadow: 0 30px 60px rgba(15,23,42,0.1);
+    border: 1px solid rgba(15,23,42,0.08);
+    animation: cardEntrance 0.9s ease forwards;
+    opacity: 0;
+    transform: translateY(40px);
+}
+
+@keyframes cardEntrance {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.success-wrapper h1 {
+    margin: 12px 0 6px;
+    font-size: 28px;
+    letter-spacing: -0.02em;
+}
+
+.success-wrapper p {
+    margin: 0;
+    color: var(--muted);
+}
+
+.success-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.success-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.success-icon circle {
+    fill: transparent;
+    stroke: #dbeafe;
+    stroke-width: 6;
+}
+
+.success-icon .stroke {
+    stroke: var(--accent);
+    stroke-linecap: round;
+    stroke-dasharray: 283;
+    stroke-dashoffset: 283;
+    animation: drawCircle 1s ease forwards;
+}
+
+@keyframes drawCircle {
+    to { stroke-dashoffset: 0; }
+}
+
+.success-icon .check {
+    stroke: var(--accent-strong);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: drawCheck 0.6s ease forwards;
+    animation-delay: 0.6s;
+}
+
+@keyframes drawCheck {
+    to { stroke-dashoffset: 0; }
+}
+
+.selected-candidate {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.selected-candidate img {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid rgba(37,99,235,0.15);
+}
+
+.selected-candidate .text {
+    text-align: left;
+}
+
+.selected-candidate .text h3 {
+    margin: 0 0 4px;
+    font-size: 20px;
+}
+
+.selected-candidate .text span {
+    display: block;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+    font-size: 14px;
+}
+
+.detail-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.detail-card {
+    background: #f8fafc;
+    border-radius: 14px;
+    padding: 16px 18px;
+    border: 1px solid rgba(15,23,42,0.06);
+    text-align: left;
+}
+
+.detail-card strong {
+    display: block;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+}
+
+.detail-card span {
+    font-size: 16px;
+    color: var(--text-dark);
+    word-break: break-word;
+}
+
+.action-row {
+    margin-top: 26px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn {
+    border-radius: 999px;
+    padding: 12px 24px;
+    font-size: 15px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.btn.primary {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    box-shadow: 0 10px 25px rgba(37,99,235,0.35);
+}
+
+.btn.primary:hover {
+    transform: translateY(-2px) scale(1.01);
+}
+
+.btn.secondary {
+    background: #e2e8f0;
+    color: var(--text-dark);
+    box-shadow: 0 12px 18px rgba(15,23,42,0.08);
+}
+
+.btn.secondary:hover {
+    transform: translateY(-2px);
+}
+
+.confetti-piece {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    opacity: 0;
+    animation: confettiFall 2s forwards;
+    pointer-events: none;
+}
+
+@keyframes confettiFall {
+    to {
+        transform: translate(var(--tx), 300px) rotate(360deg);
+        opacity: 1;
+    }
+}
+
+.glow {
+    position: absolute;
+    inset: 0;
+    filter: blur(120px);
+    background: radial-gradient(circle at center, rgba(59,132,246,0.4), transparent 55%);
+    z-index: -1;
+}
+
+.info-note {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 20px;
+}
+
+@media (max-width: 520px) {
+    .card {
+        padding: 24px 18px;
+    }
+
+    .selected-candidate {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .selected-candidate .text {
+        text-align: center;
+    }
+}
+</style>
+</head>
+<body>
+<div class="glow"></div>
+<div class="container">
+    <div class="success-wrapper">
+        <div class="success-icon">
+            <svg viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45"></circle>
+                <circle class="stroke" cx="50" cy="50" r="45"></circle>
+                <polyline class="check" points="32,53 44,65 68,39"></polyline>
+            </svg>
+        </div>
+        <h1>Vote Confirmed Successfully</h1>
+        <p>Your vote is secured and added to the official tally.</p>
+    </div>
+
+    <div class="card">
+        <div class="selected-candidate">
+            <img id="candidate-img" alt="Candidate photo" src="https://via.placeholder.com/72" />
+            <div class="text">
+                <h3 id="candidate-name">Loading candidate...</h3>
+                <span id="candidate-id">ID: —</span>
+            </div>
+        </div>
+
+        <div class="detail-grid">
+            <div class="detail-card">
+                <strong>Transaction ID</strong>
+                <span id="tx">—</span>
+            </div>
+            <div class="detail-card">
+                <strong>Submission Time</strong>
+                <span id="time">—</span>
+            </div>
+            <div class="detail-card">
+                <strong>Election Service</strong>
+                <span>VF Election Portal</span>
+            </div>
+        </div>
+        <p class="info-note">This receipt proves that your vote has been captured securely by the election system. Keep it for your records.</p>
+    </div>
+
+    <div class="action-row">
+        <button class="btn primary" id="dashboardBtn">Go to Dashboard</button>
+        <button class="btn secondary" onclick="printReceipt()">Print Receipt</button>
+    </div>
+</div>
+
+<script>
+const dashboardButton = document.getElementById("dashboardBtn");
+const candidateImage = document.getElementById("candidate-img");
+const candidateName = document.getElementById("candidate-name");
+const candidateIdEl = document.getElementById("candidate-id");
+const transactionEl = document.getElementById("tx");
+const timeEl = document.getElementById("time");
+const votedCandidate = localStorage.getItem("voted_candidate");
+
+function printReceipt(){
+    window.print();
+}
+
+dashboardButton.addEventListener("click", () => {
+    window.location.href = "dashboard.html";
+});
+
+function formatTime(){
+    return new Date().toLocaleString();
+}
+
+function generateTransactionId(){
+    return "TX-" + Math.random().toString(36).slice(2, 10).toUpperCase();
+}
+
+async function loadReceipt(){
+    if(!votedCandidate){
+        candidateName.textContent = "No vote detected";
+        candidateIdEl.textContent = "ID: —";
+        transactionEl.textContent = "—";
+        timeEl.textContent = formatTime();
+        return;
+    }
+
+    try{
+        const res = await fetch(`http://localhost:3000/candidates/${votedCandidate}`);
+        const payload = await res.json();
+
+        if(payload.error){
+            throw new Error(payload.error);
+        }
+
+        candidateImage.src = payload.image_url || candidateImage.src;
+        candidateName.textContent = payload.name || "Candidate";
+        candidateIdEl.textContent = `ID: ${payload.candidate_id || payload.id || "—"}`;
+        transactionEl.textContent = generateTransactionId();
+        timeEl.textContent = formatTime();
+    }
+    catch(err){
+        candidateName.textContent = "Unable to load candidate";
+        candidateIdEl.textContent = "ID: —";
+        transactionEl.textContent = "—";
+        timeEl.textContent = formatTime();
+        console.error(err);
+    }
+}
+
+function createConfetti(){
+    const colors = ["#ef4444","#f97316","#fbbf24","#22c55e","#2563eb","#8b5cf6"];
+    const count = 35;
+
+    for(let i = 0; i < count; i++){
+        const piece = document.createElement("span");
+        piece.className = "confetti-piece";
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.left = `${Math.random() * 100}%`;
+        piece.style.setProperty("--tx", `${(Math.random() - 0.5) * 40}px`);
+        piece.style.animationDelay = `${Math.random() * 0.6}s`;
+        piece.style.animationDuration = `${1.6 + Math.random()}s`;
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 2100);
+    }
+}
+
+setTimeout(createConfetti, 1000);
+loadReceipt();
+</script>
+</body>
+</html>

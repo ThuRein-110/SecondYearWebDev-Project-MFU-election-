@@ -189,7 +189,7 @@ async function loadCandidates(){
             <div class="candidate-buttons">
 
                 <button class="profile-btn"
-                onclick='viewProfile(${JSON.stringify(c)})'>
+                onclick="viewProfile(${c.candidate_id})">
                 View Profile
                 </button>
 
@@ -210,44 +210,9 @@ async function loadCandidates(){
 /* ==========================
    PROFILE VIEW
 ========================== */
-
-function viewProfile(candidate){
-
-const modal = document.createElement("div");
-
-modal.className = "profile-modal";
-
-modal.innerHTML = `
-
-<div class="profile-box">
-
-<h2>${candidate.name}</h2>
-
-<p><strong>Party:</strong> ${candidate.party}</p>
-
-<p><strong>Position:</strong> ${candidate.position}</p>
-
-<p><strong>Policy:</strong></p>
-
-<p>${candidate.policy}</p>
-
-<br>
-
-<button onclick="voteCandidate(${candidate.candidate_id}, this)">
-Vote for this candidate
-</button>
-
-<button onclick="this.closest('.profile-modal').remove()">
-Close
-</button>
-
-</div>
-`;
-
-document.body.appendChild(modal);
-
+function viewProfile(candidateId){
+    window.location.href = `candidate-profile.html?id=${candidateId}`;
 }
-
 /* ==========================
    VOTE
 ========================== */

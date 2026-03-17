@@ -2,114 +2,89 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Candidate Profile</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="public/css/candidate-profile.css">
-
 </head>
 
 <body>
 
 <div class="container">
 
-<a href="voter-dashboard.html" class="back">← Back to Candidates</a>
+    <!-- LEFT SIDE -->
+    <div class="main">
 
-<div class="candidate-header">
+        <a href="voter-dashboard.html">← Back to Candidates</a>
 
-<img src="https://randomuser.me/api/portraits/men/32.jpg" class="profile-img">
+        <!-- PROFILE HEADER -->
+        <div class="profile-header">
+            <img id="profile-img">
 
-<div>
-<span class="candidate-id">Candidate #007</span>
-<span class="verified">✔ Verified Identity</span>
+            <div>
+                <span class="badge" id="candidate-id"></span>
+                <h1 id="name"></h1>
+                <p id="tagline"></p>
+            </div>
+        </div>
 
-<h1>Dr. Somchai Vora</h1>
+        <!-- VISION -->
+        <div class="card">
+            <h3>Our Shared Vision</h3>
+            <p id="vision"></p>
+        </div>
 
-<p class="tagline">
-"Empowering the Future: Precision, Progress, and People-First Policies."
-</p>
+        <!-- PILLARS -->
+        <div class="card">
+            <h3>Core Election Pillars</h3>
+            <div id="pillars" class="pillars"></div>
+        </div>
 
-</div>
+        <!-- MANIFESTO -->
+        <div class="card">
+            <h3>Detailed Manifesto</h3>
+            <p id="manifesto"></p>
+        </div>
 
-</div>
+    </div>
 
+    <!-- RIGHT SIDE -->
+    <div class="vote-panel">
 
-<div class="content">
+        <h3>Cast Your Vote</h3>
 
-<div class="left">
+        <div class="vote-box">
+            <p>CURRENT STANDING</p>
+            <h2 id="votes"></h2>
+        </div>
 
-<h2>📘 Our Shared Vision</h2>
-
-<div class="vision">
-"My candidacy is built on the belief that a university is more than just classrooms.  
-It is an ecosystem of progress. I am here to ensure that every voice is heard,  
-every innovation is supported, and every student graduate is equipped for a world that changes every single day."
-</div>
-
-
-<h2>🔵 Core Election Pillars</h2>
-
-<div class="pillars">
-
-<div class="pillar">
-<h3>Academic Innovation</h3>
-<p>Investing in AI-driven research facilities and expanding scholarship opportunities.</p>
-</div>
-
-<div class="pillar">
-<h3>Digital Campus 2025</h3>
-<p>Complete overhaul of the campus network and digital services portal.</p>
-</div>
-
-<div class="pillar">
-<h3>Sustainable Future</h3>
-<p>Zero-waste campus policy and electric shuttle transition.</p>
-</div>
-
-</div>
-
-
-<h2>📄 Detailed Manifesto</h2>
-
-<p>
-In the upcoming academic year, my administration will prioritize three critical areas
-requested by students and faculty alike.
-</p>
-
-<ul>
-<li><b>Institutional Accountability:</b> Quarterly open forums for transparency.</li>
-<li><b>Mental Health Infrastructure:</b> Expanded counseling and digital support.</li>
-<li><b>International Integration:</b> Global Bridge mentoring program.</li>
-</ul>
-
-</div>
-
-
-
-<div class="vote-box">
-
-<h3>Cast Your Vote</h3>
-
-<div class="vote-count">
-<p>CURRENT STANDING</p>
-<h2>1,248</h2>
-<span>Total Verified Votes</span>
-</div>
-
-<p class="note">
-You can only vote once. This action cannot be reversed.
-</p>
-
-<button onclick="vote()">Vote for Dr. Somchai</button>
-
-</div>
-
-</div>
+<button id="voteBtn" class="vote-btn">
+    🗳️ Vote for Candidate
+</button></div>
 
 </div>
 
 <script src="public/js/candidate-profile.js"></script>
+<script>
+async function vote(candidate_id) {
+    const res = await fetch('http://localhost:3000/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ candidate_id })
+    });
 
+    const data = await res.json();
+
+    if (data.success) {
+        // save selected candidate
+        localStorage.setItem("voted_candidate", candidate_id);
+
+        // redirect to receipt page
+        window.location.href = "receipt.html";
+    } else {
+        alert(data.message || "Vote failed");
+    }
+}
+</script>
 </body>
 </html>

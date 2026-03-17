@@ -7,7 +7,10 @@ const db = require('./db');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+    origin: "http://localhost:3000",
+    credentials: true
+}));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../frontend')));
 
@@ -374,8 +377,31 @@ app.post('/candidate/update',(req,res)=>{
     );
 
 });
+// GET candidate by ID
+app.get("/candidates/:id", (req, res) => {
 
+    const id = req.params.id;
 
+    const sql = `
+        SELECT *
+        FROM candidates
+        WHERE candidate_id = ?
+    `;
+
+    db.query(sql, [id], (err, result) => {
+
+        if (err) {
+            console.error(err);
+            return res.json({ error: "Database error" });
+        }
+
+        if (result.length === 0) {
+            return res.json({ error: "Candidate not found" });
+        }
+
+        res.json(result[0]);
+    });
+});
 /* -------------------- SERVER -------------------- */
 
 app.listen(3000,'0.0.0.0',()=>{
