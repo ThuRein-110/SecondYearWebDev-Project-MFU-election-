@@ -14,6 +14,7 @@ async function submitLogin() {
     const response = await fetch('/login/voter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ citizen_id: citizenId, laser_id: laserId })
     });
 

@@ -5,94 +5,158 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - MFU Election</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="public/css/admin-dashboard.css">
 </head>
 <body>
-    <div class="header">
+    <header class="top-bar">
         <div class="logo">MFU Election</div>
-        <div class="user-info">
-            <span>Welcome, Admin</span>
+        <div class="user-brand">
+            <div class="user-details">
+                <span class="label">Election Committee Admin</span>
+                <strong>admin</strong>
+            </div>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
-    </div>
-    <div class="container">
-        <div class="sidebar">
+    </header>
+    <div class="page-shell">
+        <aside class="sidebar">
+            <div class="brand">
+                <i class="fa-solid fa-square-check"></i>
+                <span>MFU Election</span>
+            </div>
             <nav>
-                <a href="#" class="nav-item active" onclick="showSection('dashboard')">
-                    <span>📊</span> Dashboard
-                </a>
-                <a href="#" class="nav-item" onclick="showSection('voters')">
-                    <span>👥</span> Voters Management
-                </a>
-                <a href="#" class="nav-item" onclick="showSection('candidates')">
-                    <span>👤</span> Candidates Management
-                </a>
-                <a href="#" class="nav-item" onclick="showSection('results')">
-                    <span>📈</span> View Results
-                </a>
+                <a href="#overview" class="nav-item active" data-target="overview">Admin Overview</a>
+                <a href="#manage" class="nav-item" data-target="manage">Manage Users</a>
             </nav>
-        </div>
-        <div class="main-content">
-            <div id="dashboard-section" class="section active">
-                <h1>Dashboard Overview</h1>
-                <div class="stats-grid" id="stats"></div>
-                <div class="quick-actions">
-                    <div class="action-card" onclick="toggleVoting()" id="voting-card">
-                        <h3 id="voting-title">🟢 Enable Voting</h3>
-                        <p>Control the voting process</p>
+            <div class="help-note">
+                Need help?<br>
+                Contact the election committee for support with your ID.
+            </div>
+        </aside>
+        <main class="main">
+            <section id="overview" class="overview">
+                <div class="overview-headline">
+                    <div>
+                        <h1>System Overview</h1>
+                        <p>Real-time monitoring and administrative controls for the 2024 General Election.</p>
                     </div>
-                    <div class="action-card" onclick="showSection('voters')">
-                        <h3>👥 Manage Voters</h3>
-                        <p>Enable/disable voter accounts</p>
+                    <button class="primary">Close Election</button>
+                </div>
+                <div class="overview-cards" id="overview-cards">
+                    <!-- cards injected by JS -->
+                </div>
+                <div class="insight-row">
+                    <div class="chart-card">
+                        <div class="card-header">
+                            <h3>Voter Turnout Velocity</h3>
+                            <span>Cumulative votes cast throughout the polling window.</span>
+                        </div>
+                        <canvas id="turnout-chart" width="600" height="220"></canvas>
                     </div>
-                    <div class="action-card" onclick="showSection('candidates')">
-                        <h3>👤 Manage Candidates</h3>
-                        <p>Control candidate participation</p>
+                    <div class="lead-card">
+                        <div class="card-header">
+                            <h3>Lead Standings</h3>
+                            <span>Top candidates by total votes.</span>
+                        </div>
+                        <div id="lead-list"></div>
+                        <a class="link" href="#">View Full Results Table</a>
                     </div>
                 </div>
-            </div>
-            <div id="voters-section" class="section">
-                <h1>Voters Management</h1>
-                <div class="table-container">
-                    <table id="voters-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Citizen ID</th>
-                                <th>Laser ID</th>
-                                <th>Status</th>
-                                <th>Voted</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+            </section>
+
+            <section class="actions" aria-label="Administrative Actions">
+                <div class="section-head">
+                    <h2>Administrative Actions</h2>
                 </div>
-            </div>
-            <div id="candidates-section" class="section">
-                <h1>Candidates Management</h1>
-                <div class="table-container">
-                    <table id="candidates-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Candidate ID</th>
-                                <th>Name</th>
-                                <th>Policy</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                <div class="action-grid">
+                    <button class="action-card" onclick="scrollToSection('manage')">
+                        <div>
+                            <strong>Manage Database</strong>
+                            <p>Add new voter IDs, laser IDs, and candidate profiles to the system.</p>
+                        </div>
+                        <span>User Management →</span>
+                    </button>
+                    <button class="action-card" onclick="exportResults()">
+                        <div>
+                            <strong>Export Results</strong>
+                            <p>Download the current voting logs in CSV or PDF format for committee review.</p>
+                        </div>
+                        <span>Download Reports →</span>
+                    </button>
+                    <button class="action-card">
+                        <div>
+                            <strong>Verify Participants</strong>
+                            <p>Approve pending candidate registrations and verify citizen identities.</p>
+                        </div>
+                        <span>Verification Queue →</span>
+                    </button>
                 </div>
-            </div>
-            <div id="results-section" class="section">
-                <h1>Election Results</h1>
-                <div class="results-grid" id="results-list"></div>
-            </div>
-        </div>
+            </section>
+
+            <section class="events" aria-label="Recent System Events">
+                <div class="section-head">
+                    <h2>Recent System Events</h2>
+                </div>
+                <ul id="event-list"></ul>
+                <div class="view-log">
+                    <button onclick="scrollToSection('overview')">View Full Audit Log</button>
+                </div>
+            </section>
+
+            <section id="manage" class="manage" aria-label="Manage Users">
+                <div class="section-head">
+                    <h2>Manage Users</h2>
+                    <p>Add, enable, or disable voters and candidates in one view.</p>
+                </div>
+                <div class="tables">
+                    <div class="table-card">
+                        <div class="table-card-head">
+                            <h3>Voters</h3>
+                            <button class="ghost-btn" onclick="loadVoters()">Refresh</button>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Citizen ID</th>
+                                        <th>Laser ID</th>
+                                        <th>Status</th>
+                                        <th>Voted</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="voters-table"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="table-card">
+                        <div class="table-card-head">
+                            <h3>Candidates</h3>
+                            <button class="ghost-btn" onclick="loadCandidates()">Refresh</button>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Policy</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="candidates-table"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js" integrity="sha512-p3T4z2dJq7WszP0Y96P0GeyuWtoq2PQoU+gD10jjGTf6j2OgSUEYApgl+B0Fklxg0EVT1EQsZ7PZretMvQZ0TA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="public/js/admin-dashboard.js"></script>
 </body>
 </html>

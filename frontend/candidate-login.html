@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MFU Election - Candidate Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="public/css/login.css">
+</head>
+<body>
+
+<div class="page">
+
+    <div class="top-header">
+        <div class="logo">
+            <i class="fa-solid fa-square-check"></i>
+            <span>MFU Election Voting</span>
+        </div>
+        <div class="subtitle">
+            Candidate Access Portal<br>
+            MFU Student Election 2024
+        </div>
+    </div>
+
+    <div class="login-card">
+
+        <div class="verified">
+            <i class="fa-solid fa-user"></i>
+            CANDIDATE ACCESS
+        </div>
+
+        <h2>Candidate Login</h2>
+        <p class="desc">Sign in with your Candidate ID or campaign email to manage your profile.</p>
+
+        <form onsubmit="event.preventDefault(); submitCandidateLogin();">
+            <label>CANDIDATE ID OR EMAIL</label>
+            <input id="candidate-identifier" type="text" placeholder="CAN-001 or name@mfu.ac.th" required autocomplete="off">
+
+            <label>PASSWORD</label>
+            <input id="candidate-password" type="password" placeholder="Your candidate password" required autocomplete="off">
+
+            <button type="submit" class="btn">
+                Sign In as Candidate
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <div class="security-box">
+            <b>Candidate Privileges</b>
+            <p>Track campaign metrics, submit policy updates, and monitor your vote totals with your verified account.</p>
+        </div>
+
+        <div class="links">
+            <span>Need help?</span>
+            <a href="#">Help Center</a>
+            <a href="login.html">Back to Voter Login</a>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="public/js/candidate-login.js"></script>
+</body>
+</html>

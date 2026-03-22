@@ -1,8 +1,27 @@
 let sidebarOpen = false;
+let cachedCandidates = [];
+let historyRecords = [];
+let historySearchInputEl = null;
+const dashboardErrorEl = document.getElementById('dashboard-error');
 
-/* ==========================
-   SIDEBAR
-========================== */
+const searchInput = document.getElementById('candidate-search');
+const sortSelect = document.getElementById('sort-candidate');
+
+if (searchInput) {
+    searchInput.addEventListener('input', handleCandidateFilters);
+}
+
+if (sortSelect) {
+    sortSelect.addEventListener('change', handleCandidateFilters);
+}
+
+function formatNumber(value) {
+    const numeric = Number(value);
+    if (Number.isNaN(numeric)) {
+        return '0';
+    }
+    return numeric.toLocaleString();
+}
 
 function toggleSidebar() {
     sidebarOpen = !sidebarOpen;
@@ -10,12 +29,7 @@ function toggleSidebar() {
         .classList.toggle('open', sidebarOpen);
 }
 
-/* ==========================
-   NAVIGATION
-========================== */
-
 function showSection(sectionName, event) {
-
     document.querySelectorAll('.section').forEach(section => {
         section.classList.remove('active');
     });
@@ -40,258 +54,433 @@ function showSection(sectionName, event) {
     if (sectionName === "history") loadHistory();
 }
 
-/* ==========================
-   DASHBOARD
-========================== */
-
-async function loadDashboard(){
-
+async function loadDashboard() {
     const response = await fetch("/dashboard");
     const data = await response.json();
 
-    if(data.error){
-        alert("Dashboard error");
+    if (dashboardErrorEl) {
+        if (data.error) {
+            dashboardErrorEl.textContent = data.error;
+            dashboardErrorEl.hidden = false;
+        } else {
+            dashboardErrorEl.hidden = true;
+        }
+    }
+
+    if (data.error) {
         return;
     }
 
-    document.getElementById("stats").innerHTML = `
-        <div class="stat">
-            <h4>Total Voters</h4>
-            <p>${data.voters}</p>
-        </div>
+    const statsContainer = document.getElementById("stats");
+    if (statsContainer) {
+        const turnout = Number.isFinite(Number(data.percentage))
+            ? Number(data.percentage).toFixed(2)
+            : "0.00";
 
-        <div class="stat">
-            <h4>Candidates</h4>
-            <p>${data.candidates}</p>
-        </div>
-
-        <div class="stat">
-            <h4>Votes Cast</h4>
-            <p>${data.votes}</p>
-        </div>
-
-        <div class="stat">
-            <h4>Voting %</h4>
-            <p>${data.percentage}%</p>
-        </div>
-    `;
+        statsContainer.innerHTML = `
+            <div class="stat-card">
+                <h4>Total Voters</h4>
+                <p>${formatNumber(data.voters)}</p>
+                <span>registered university voters</span>
+            </div>
+            <div class="stat-card">
+                <h4>Active Candidates</h4>
+                <p>${formatNumber(data.candidates)}</p>
+                <span>profiles on the ballot</span>
+            </div>
+            <div class="stat-card">
+                <h4>Votes Cast</h4>
+                <p>${formatNumber(data.votes)}</p>
+                <span>ballots counted so far</span>
+            </div>
+            <div class="stat-card">
+                <h4>Voting %</h4>
+                <p>${turnout}%</p>
+                <span>of registered voters</span>
+            </div>
+        `;
+    }
 
     loadStandings();
 }
 
-/* ==========================
-   LIVE STANDINGS
-========================== */
-
-async function loadStandings(){
-
+async function loadStandings() {
     const response = await fetch("/results");
     const standings = await response.json();
+    const tbody = document.getElementById("standing-table-body");
 
-    const tbody =
-        document.getElementById("standing-table-body");
-
-    if(!Array.isArray(standings)){
+    if (!Array.isArray(standings)) {
         tbody.innerHTML =
-        `<tr><td colspan="5">Unable to load standings</td></tr>`;
+            `<tr><td colspan="5">Unable to load standings</td></tr>`;
         return;
     }
 
-    tbody.innerHTML = standings.map((c,index)=>{
-
+    tbody.innerHTML = standings.map((c, index) => {
         const votes = c.votes || 0;
         const trend = votes > 0 ? "⬆️" : "➖";
 
         return `
         <tr>
-            <td>${index+1}</td>
-
+            <td>${index + 1}</td>
             <td>
                 <strong>${c.name}</strong><br>
                 <small>${c.party || "Independent"}</small>
             </td>
-
             <td>${c.position || "Candidate"}</td>
-
             <td>${votes}</td>
-
             <td>${trend}</td>
         </tr>
         `;
 
     }).join("");
-
 }
 
-/* ==========================
-   CANDIDATES
-========================== */
-
-async function loadCandidates(){
-
+async function loadCandidates() {
     const response = await fetch("/candidates");
 
-    if(!response.ok){
+    if (!response.ok) {
         console.error("Server error");
         return;
     }
 
     const candidates = await response.json();
 
-    const container =
-        document.getElementById("candidates");
-
-    if(!Array.isArray(candidates) || candidates.length === 0){
-        container.innerHTML =
-        "<p>No candidates available.</p>";
+    if (!Array.isArray(candidates)) {
+        const container = candidateContainer();
+        if (container) {
+            container.innerHTML = "<p>No candidates available.</p>";
+        }
+        cachedCandidates = [];
         return;
     }
 
-    container.innerHTML =
-    candidates.map(c => {
+    cachedCandidates = candidates;
+    handleCandidateFilters();
+}
 
-        const votes = c.votes || 0;
+function candidateContainer() {
+    return document.getElementById("candidates");
+}
 
-        const image =
-        c.image_url && c.image_url.startsWith("http")
-        ? c.image_url
-        : `https://randomuser.me/api/portraits/men/${Math.floor(Math.random()*90)}.jpg`;
+function handleCandidateFilters() {
+    renderCandidateGrid(filterAndSortCandidates());
+}
 
-        return `
-        <div class="candidate-card">
+function filterAndSortCandidates() {
+    if (!Array.isArray(cachedCandidates)) {
+        return [];
+    }
 
-            <img src="${image}"
-            class="candidate-photo"
-            onerror="this.src='https://randomuser.me/api/portraits/men/1.jpg'">
+    const searchTerm = searchInput?.value.trim().toLowerCase() || "";
+    let filtered = cachedCandidates.slice();
 
-            <div class="candidate-badge">
-                CAN-${String(c.candidate_id).padStart(3,"0")}
-            </div>
+    if (searchTerm) {
+        filtered = filtered.filter(candidate => {
+            const label = [
+                candidate.name,
+                candidate.party,
+                `CAN-${String(candidate.candidate_id).padStart(3, "0")}`
+            ].join(" ").toLowerCase();
+            return label.includes(searchTerm);
+        });
+    }
 
-            <h3>${c.name}</h3>
+    const sortMode = sortSelect?.value || "votes";
 
-            <p class="candidate-party">
-                ${c.party || "Independent"}
-            </p>
+    filtered.sort((a, b) => {
+        if (sortMode === "name") {
+            return (a.name || "").localeCompare(b.name || "");
+        }
+        const votesA = a.votes || 0;
+        const votesB = b.votes || 0;
+        return votesB - votesA;
+    });
 
-            <p class="candidate-position">
-                ${c.position || "Candidate"}
-            </p>
+    return filtered;
+}
 
+function renderCandidateGrid(candidates) {
+    const container = candidateContainer();
+    if (!container) return;
+
+    if (!candidates.length) {
+        container.innerHTML = "<p class=\"empty-state\">No candidates matched your search.</p>";
+        return;
+    }
+
+    container.innerHTML = candidates.map(candidateCardMarkup).join("");
+}
+
+function candidateCardMarkup(candidate) {
+    const votes = candidate.votes || 0;
+    const badge = `CAN-${String(candidate.candidate_id).padStart(3, "0")}`;
+
+    return `
+        <div class="candidate">
+            <img src="${resolveCandidateImage(candidate)}"
+                class="candidate-photo"
+                alt="${candidate.name || "Candidate photo"}"
+                onerror="this.src='https://randomuser.me/api/portraits/men/1.jpg'">
+            <div class="candidate-badge">${badge}</div>
+            <h4>${candidate.name || "Unknown Candidate"}</h4>
+            <p class="candidate-party">${candidate.party || "Independent"}</p>
+            <p class="candidate-position">${candidate.position || "Candidate"}</p>
             <p class="candidate-policy">
-                "${c.policy}"
+                "${candidate.policy || "Policy details coming soon."}"
             </p>
-
             <div class="vote-count">
                 🗳 ${votes} Votes
             </div>
-
             <div class="candidate-buttons">
-
-                <button class="profile-btn"
-                onclick="viewProfile(${c.candidate_id})">
-                View Profile
+                <button class="profile-btn" onclick="viewProfile(${candidate.candidate_id})">
+                    View Profile
                 </button>
-
-                <button class="vote-btn"
-                onclick="voteCandidate(${c.candidate_id}, this)">
-                Vote
+                <button class="vote-btn" onclick="voteCandidate(${candidate.candidate_id}, this)">
+                    Vote
                 </button>
-
             </div>
-
         </div>
-        `;
-
-    }).join("");
-
+    `;
 }
 
-/* ==========================
-   PROFILE VIEW
-========================== */
-function viewProfile(candidateId){
+function resolveCandidateImage(candidate) {
+    if (candidate.image_url && candidate.image_url.startsWith("http")) {
+        return candidate.image_url;
+    }
+    const seed = Number(candidate.candidate_id) || 1;
+    return `https://randomuser.me/api/portraits/men/${seed % 90}.jpg`;
+}
+
+function viewProfile(candidateId) {
     window.location.href = `candidate-profile.html?id=${candidateId}`;
 }
-/* ==========================
-   VOTE
-========================== */
 
-async function voteCandidate(candidateId,button){
+async function voteCandidate(candidateId, button) {
+    button.disabled = true;
 
-button.disabled = true;
+    const confirmVote =
+        confirm("Are you sure you want to vote for this candidate?");
 
-const confirmVote =
-confirm("Are you sure you want to vote for this candidate?");
+    if (!confirmVote) {
+        button.disabled = false;
+        return;
+    }
 
-if(!confirmVote){
-button.disabled = false;
-return;
+    try {
+        const response = await fetch("/vote", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ candidate_id: candidateId })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            storeCandidateIdForReceipt(candidateId);
+            storeReturnAnchor('#candidates-section');
+            const params = new URLSearchParams();
+            params.set('candidate_id', candidateId);
+            if (result.vote_id) {
+                params.set('vote', result.vote_id);
+            }
+            window.location.href = `receipt.html?${params.toString()}`;
+            return;
+        }
+
+        alert(result.message || result.error || "Voting failed");
+    } catch (err) {
+        console.error("Vote request failed", err);
+        alert("Voting failed. Please try again later.");
+    } finally {
+        button.disabled = false;
+    }
 }
 
-const response = await fetch("/vote",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({candidate_id:candidateId})
-});
+async function loadHistory() {
+    const response = await fetch("/voter/history");
 
-const result = await response.json();
+    if (!response.ok) {
+        console.error("Unable to fetch history");
+        return;
+    }
 
-if(result.success){
+    const payload = await response.json();
 
-alert("Vote successfully recorded!");
+    if (!payload || !payload.success) {
+        console.error("History response invalid");
+        return;
+    }
 
-loadDashboard();
-loadCandidates();
-
-}else{
-
-alert(result.error || "Voting failed");
-
-button.disabled = false;
-
+    historyRecords = Array.isArray(payload.history) ? payload.history : [];
+    updateHistorySummary(payload.summary || {});
+    renderHistoryTable(historySearchInputEl?.value || "");
 }
 
+function updateHistorySummary(summary) {
+    document.getElementById("history-total-votes").textContent =
+        summary.total_votes ?? 0;
+    document.getElementById("history-participation").textContent =
+        `${summary.participation_rate ?? 0}%`;
+    document.getElementById("history-eligibility").textContent =
+        summary.active_eligibility ?? 0;
 }
 
-/* ==========================
-   HISTORY
-========================== */
+function renderHistoryTable(filterTerm = "") {
+    const tbody = document.getElementById("history-table-body");
+    if (!tbody) return;
+    const term = filterTerm.trim().toLowerCase();
+    if (!historyRecords.length) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="history-empty">
+                    You have not voted yet. Cast a vote to see your history here.
+                </td>
+            </tr>`;
+        updateHistoryCount(0, 0);
+        return;
+    }
 
-async function loadHistory(){
+    const filtered = historyRecords.filter(record => {
+        if (!term) return true;
+        const label = [
+            `VOTE-${String(record.vote_id).padStart(3, "0")}`,
+            record.name,
+            record.party,
+            record.position
+        ].join(" ").toLowerCase();
+        return label.includes(term);
+    });
 
-const response =
-await fetch("/voter/history");
+    if (!filtered.length) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="history-empty">
+                    No history records match that search.
+                </td>
+            </tr>`;
+        updateHistoryCount(filtered.length, historyRecords.length);
+        return;
+    }
 
-const history = await response.json();
+    tbody.innerHTML = filtered.map(record => {
+        const timestamp = formatTimestamp(record.vote_time);
+        return `
+        <tr>
+            <td>#${String(record.vote_id).padStart(3, "0")}</td>
+            <td>
+                <strong>MFU Student Council ${new Date(record.vote_time).getFullYear()}</strong><br>
+                <small>${record.position || "Representative"} • ${record.party || "General"}</small>
+            </td>
+            <td class="history-candidate">
+                <img src="${resolveCandidateImage(record)}" alt="${record.name || 'Candidate photo'}">
+                <span>${record.name || "Unknown Candidate"}</span>
+            </td>
+            <td>${timestamp}</td>
+            <td><span class="status-chip">Completed</span></td>
+        <td><button class="history-action-btn" onclick="viewReceipt(${record.vote_id}, ${record.candidate_id || 0})">View</button></td>
+        </tr>
+        `;
+    }).join("");
 
-document.getElementById("history").innerHTML =
-history.length
-? history.map(h =>
-`<p>You voted for ${h.name} on ${h.vote_time}</p>`
-).join("")
-: "<p>You have not voted yet.</p>";
-
+    updateHistoryCount(filtered.length, historyRecords.length);
 }
 
-/* ==========================
-   LOGOUT
-========================== */
-
-async function logout(){
-
-await fetch("/logout",{method:"POST"});
-
-window.location.href = "login.html";
-
+function updateHistoryCount(filtered, total) {
+    const label = document.getElementById("history-count");
+    if (label) {
+        label.textContent = filtered === total
+            ? `Showing ${total} entries`
+            : `Showing ${filtered} of ${total} entries`;
+    }
 }
 
-/* ==========================
-   INIT
-========================== */
+function formatTimestamp(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return "Unknown time";
+    }
+    return date.toLocaleString();
+}
 
-document.addEventListener("DOMContentLoaded",()=>{
+function exportHistory() {
+    if (!historyRecords.length) {
+        alert("No history data to export.");
+        return;
+    }
 
-loadDashboard();
+    const header = ["Vote ID", "Candidate", "Position", "Party", "Timestamp"];
+    const rows = historyRecords.map(record => [
+        `VOTE-${String(record.vote_id).padStart(3, "0")}`,
+        record.name,
+        record.position,
+        record.party,
+        formatTimestamp(record.vote_time)
+    ]);
 
+    const csvContent = [header, ...rows]
+        .map(row => row.map(cell => `"${(cell ?? "").toString().replace(/"/g, '""')}"`).join(","))
+        .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `mfu-voting-history-${Date.now()}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+function viewReceipt(voteId, candidateId) {
+    if (candidateId) {
+        storeCandidateIdForReceipt(candidateId);
+    }
+    storeReturnAnchor('#history-section');
+    const params = new URLSearchParams();
+    if (voteId) {
+        params.set('vote', voteId);
+    }
+    if (candidateId) {
+        params.set('candidate_id', candidateId);
+    }
+    window.location.href = `receipt.html?${params.toString()}`;
+}
+
+function storeCandidateIdForReceipt(candidateId) {
+    if (!candidateId) return;
+    try {
+        localStorage.setItem('voted_candidate', candidateId);
+    } catch (err) {
+        if (typeof sessionStorage !== "undefined") {
+            sessionStorage.setItem('voted_candidate', candidateId);
+        }
+    }
+}
+
+function storeReturnAnchor(anchor) {
+    try {
+        localStorage.setItem('return_anchor', anchor);
+    } catch (err) {
+        if (typeof sessionStorage !== "undefined") {
+            sessionStorage.setItem('return_anchor', anchor);
+        }
+    }
+}
+
+async function logout() {
+    await fetch("/logout", { method: "POST" });
+    window.location.href = "login.html";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadDashboard();
+    loadCandidates();
+    historySearchInputEl = document.getElementById('history-search');
+    if (historySearchInputEl) {
+        historySearchInputEl.addEventListener('input', () => {
+            renderHistoryTable(historySearchInputEl.value);
+        });
+    }
 });

@@ -1,0 +1,135 @@
+-- MFU Election Database Schema & Seed Data
+-- Run as part of backend/setup.js or manually via mysql client
+
+CREATE DATABASE IF NOT EXISTS mfu_election;
+USE mfu_election;
+
+CREATE TABLE IF NOT EXISTS voters (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    citizen_id VARCHAR(20) UNIQUE NOT NULL,
+    laser_id VARCHAR(20) NOT NULL,
+    status TINYINT DEFAULT 1,
+    has_voted TINYINT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS candidates (
+    candidate_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    party VARCHAR(100),
+    position VARCHAR(100),
+    policy TEXT,
+    image_url TEXT,
+    email VARCHAR(255) UNIQUE,
+    password VARCHAR(255),
+    status TINYINT DEFAULT 1,
+    vision TEXT,
+    manifesto TEXT,
+    votes INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS votes (
+    vote_id INT AUTO_INCREMENT PRIMARY KEY,
+    voter_id INT NOT NULL,
+    candidate_id INT NOT NULL,
+    vote_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (voter_id) REFERENCES voters(id),
+    FOREIGN KEY (candidate_id) REFERENCES candidates(candidate_id)
+);
+
+CREATE TABLE IF NOT EXISTS admins (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS settings (
+    id INT PRIMARY KEY DEFAULT 1,
+    voting_enabled TINYINT DEFAULT 1
+);
+
+-- Seed values (adjust as needed)
+INSERT INTO admins (username, password) VALUES ('admin','admin123')
+    ON DUPLICATE KEY UPDATE password=VALUES(password);
+INSERT INTO settings (id,voting_enabled) VALUES (1,1)
+    ON DUPLICATE KEY UPDATE voting_enabled=VALUES(voting_enabled);
+
+-- 52 voter seeds
+INSERT INTO voters (citizen_id, laser_id, status, has_voted)
+VALUES
+(6731501000,'GY22884000',1,0),
+(6731501001,'GY22884001',1,0),
+(6731501002,'GY22884002',1,0),
+(6731501003,'GY22884003',1,0),
+(6731501004,'GY22884004',1,0),
+(6731501005,'GY22884005',1,0),
+(6731501006,'GY22884006',1,0),
+(6731501007,'GY22884007',1,0),
+(6731501008,'GY22884008',1,0),
+(6731501009,'GY22884009',1,0),
+(6731501010,'GY22884010',1,0),
+(6731501011,'GY22884011',1,0),
+(6731501012,'GY22884012',1,0),
+(6731501013,'GY22884013',1,0),
+(6731501014,'GY22884014',1,0),
+(6731501015,'GY22884015',1,0),
+(6731501016,'GY22884016',1,0),
+(6731501017,'GY22884017',1,0),
+(6731501018,'GY22884018',1,0),
+(6731501019,'GY22884019',1,0),
+(6731501020,'GY22884020',1,0),
+(6731501021,'GY22884021',1,0),
+(6731501022,'GY22884022',1,0),
+(6731501023,'GY22884023',1,0),
+(6731501024,'GY22884024',1,0),
+(6731501025,'GY22884025',1,0),
+(6731501026,'GY22884026',1,0),
+(6731501027,'GY22884027',1,0),
+(6731501028,'GY22884028',1,0),
+(6731501029,'GY22884029',1,0),
+(6731501030,'GY22884030',1,0),
+(6731501031,'GY22884031',1,0),
+(6731501032,'GY22884032',1,0),
+(6731501033,'GY22884033',1,0),
+(6731501034,'GY22884034',1,0),
+(6731501035,'GY22884035',1,0),
+(6731501036,'GY22884036',1,0),
+(6731501037,'GY22884037',1,0),
+(6731501038,'GY22884038',1,0),
+(6731501039,'GY22884039',1,0),
+(6731501040,'GY22884040',1,0),
+(6731501041,'GY22884041',1,0),
+(6731501042,'GY22884042',1,0),
+(6731501043,'GY22884043',1,0),
+(6731501044,'GY22884044',1,0),
+(6731501045,'GY22884045',1,0),
+(6731501046,'GY22884046',1,0),
+(6731501047,'GY22884047',1,0),
+(6731501048,'GY22884048',1,0),
+(6731501049,'GY22884049',1,0),
+(6731501050,'GY22884050',1,0),
+(6731501051,'GY22884051',1,0)
+ON DUPLICATE KEY UPDATE laser_id=VALUES(laser_id);
+
+-- Candidates
+INSERT INTO candidates (candidate_id,name,party,position,policy,image_url,email,password,status,vision,manifesto,votes)
+VALUES
+(1,'Mr. Thitipong Siri','Bright Horizon','President','Expand digital learning studios and partner labs with industry leaders.','https://randomuser.me/api/portraits/men/21.jpg','thitipong@mfu.ac.th','SiriSecure!26',1,'A future-first MFU that embraces emerging technologies and inclusive learning.','Create accessible co-creation spaces where students and faculty can prototype future-ready projects together.',1),
+(2,'Ms. Anya Raksak','Student Voice','President','Ensure student council seats reflect every faculty and program.','https://randomuser.me/api/portraits/women/44.jpg','anya@mfu.ac.th','VoicePulse$26',1,'Every student is represented and empowered with transparent dialogue and support.','Host monthly town halls with clear follow-up tracking and democratize council budgets.',0),
+(3,'Dr. Somchai Wang','Innovation MFU','President','Improve digital services with AI-assisted assistants for campus services.','https://randomuser.me/api/portraits/men/32.jpg','somchai@mfu.ac.th','InnovateEdge#26',1,'An innovative MFU leading regional education through collaborative AI research.','Launch an innovation hub where interdisciplinary teams co-create human-centered digital tools.',0),
+(4,'Dr. Sirin Phayap','Innovation MFU','President','Improve student digital services','https://randomuser.me/api/portraits/men/44.jpg','sirin@mfu.ac.th','DigitalPioneer@26',1,'My candidacy is built on the belief that a university should champion digital equity.','Deploy hands-on labs and learning pods so every student masters the AI-enabled workplace.',0),
+(5,'Ms. Piyawan Raksak','Student Voice','President','Better student representation','https://randomuser.me/api/portraits/women/65.jpg','piyawan@mfu.ac.th','CommunityFirst%26',1,'A compassionate campus community centered on wellbeing, trust, and inclusion.','Fund peer counselling, expand wellness programs, and open transparent budget channels.',0),
+(6,'Mr. Thanat P.','Green Future','President','Making MFU a sustainable university','https://randomuser.me/api/portraits/men/65.jpg','thanat@mfu.ac.th','GreenFuture#26',1,'A campus that honours nature and student wellbeing every day.','Implement campus-wide zero-waste initiatives and rewild shared learning spaces.',0)
+ON DUPLICATE KEY UPDATE
+    name=VALUES(name),
+    party=VALUES(party),
+    position=VALUES(position),
+    policy=VALUES(policy),
+    image_url=VALUES(image_url),
+    email=VALUES(email),
+    password=VALUES(password),
+    status=VALUES(status),
+    vision=VALUES(vision),
+    manifesto=VALUES(manifesto),
+    votes=VALUES(votes);

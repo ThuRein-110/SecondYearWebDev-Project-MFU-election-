@@ -1,90 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Candidate Profile</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="public/css/candidate-profile.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidate Profile - MFU Election</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="public/css/candidate-profile.css">
 </head>
-
 <body>
-
-<div class="container">
-
-    <!-- LEFT SIDE -->
-    <div class="main">
-
-        <a href="voter-dashboard.html">← Back to Candidates</a>
-
-        <!-- PROFILE HEADER -->
-        <div class="profile-header">
-            <img id="profile-img">
-
-            <div>
-                <span class="badge" id="candidate-id"></span>
-                <h1 id="name"></h1>
-                <p id="tagline"></p>
+    <div class="page-wrapper">
+        <header class="page-header">
+            <a class="back-link" href="voter-dashboard.html#candidates-section">
+                <span aria-hidden="true">←</span>
+                <span>Back to Candidates</span>
+            </a>
+            <div class="header-meta">
+                <span class="status-chip">Candidate Snapshot</span>
+                <span class="status-chip secondary">Voting Open</span>
             </div>
+        </header>
+        <div class="profile-grid">
+            <section class="profile-section">
+                <div class="profile-banner">
+                    <img id="profile-img" alt="Candidate portrait">
+                    <div class="profile-details">
+                        <div class="profile-badges">
+                            <span class="badge" id="candidate-id"></span>
+                            <span class="party-chip" id="party"></span>
+                        </div>
+                        <div class="name-row">
+                            <h1 id="name"></h1>
+                            <span class="position-chip" id="position"></span>
+                        </div>
+                        <p class="tagline" id="tagline"></p>
+                        <p class="policy-summary" id="policy-summary"></p>
+                    </div>
+                </div>
+                <div class="content-grid">
+                    <div class="info-card">
+                        <h3>Vision</h3>
+                        <p id="vision"></p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Manifesto</h3>
+                        <p id="manifesto"></p>
+                    </div>
+                </div>
+                <div class="info-card pillars-card">
+                    <h3>Core Pillars</h3>
+                    <div id="pillars" class="pillars"></div>
+                </div>
+            </section>
+            <aside class="vote-section">
+                <div class="vote-panel">
+                    <h3>Cast Your Vote</h3>
+                    <p class="vote-subtitle">Every ballot shapes the MFU experience.</p>
+                    <div class="vote-box">
+                        <p>Current standing</p>
+                        <h2 id="votes">0 Votes</h2>
+                        <small id="ranking-text">Live updates ahead</small>
+                    </div>
+                    <button id="voteBtn" class="vote-btn">
+                        🗳️ Vote for Candidate
+                    </button>
+                    <p id="vote-status" class="vote-status" aria-live="polite"></p>
+                </div>
+            </aside>
         </div>
-
-        <!-- VISION -->
-        <div class="card">
-            <h3>Our Shared Vision</h3>
-            <p id="vision"></p>
-        </div>
-
-        <!-- PILLARS -->
-        <div class="card">
-            <h3>Core Election Pillars</h3>
-            <div id="pillars" class="pillars"></div>
-        </div>
-
-        <!-- MANIFESTO -->
-        <div class="card">
-            <h3>Detailed Manifesto</h3>
-            <p id="manifesto"></p>
-        </div>
-
     </div>
-
-    <!-- RIGHT SIDE -->
-    <div class="vote-panel">
-
-        <h3>Cast Your Vote</h3>
-
-        <div class="vote-box">
-            <p>CURRENT STANDING</p>
-            <h2 id="votes"></h2>
-        </div>
-
-<button id="voteBtn" class="vote-btn">
-    🗳️ Vote for Candidate
-</button></div>
-
-</div>
-
-<script src="public/js/candidate-profile.js"></script>
-<script>
-async function vote(candidate_id) {
-    const res = await fetch('http://localhost:3000/vote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ candidate_id })
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-        // save selected candidate
-        localStorage.setItem("voted_candidate", candidate_id);
-
-        // redirect to receipt page
-        window.location.href = "receipt.html";
-    } else {
-        alert(data.message || "Vote failed");
-    }
-}
-</script>
+    <script src="public/js/storage-utils.js"></script>
+    <script src="public/js/candidate-profile.js"></script>
 </body>
 </html>

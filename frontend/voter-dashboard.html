@@ -52,6 +52,7 @@
 
 
     <!-- Stats -->
+    <div id="dashboard-error" class="error-banner" hidden></div>
     <div class="stats-grid" id="stats">
 
         <div class="stat-card">
@@ -165,9 +166,66 @@ placeholder="Search by name, party, or candidate ID..."
 
     <!-- History Section -->
     <div id="history-section" class="section">
-        <h2 class="section-title">Voting History</h2>
-        <div id="history">
-            <!-- History will be loaded here -->
+        <div class="history-header">
+            <div>
+                <h1>Voting History</h1>
+                <p class="subtitle">
+                    Review your participation history in MFU election events. This record is immutable and serves as your official voting receipt.
+                </p>
+            </div>
+            <div class="history-cards">
+                <div class="history-card">
+                    <span>Total Votes</span>
+                    <strong id="history-total-votes">0</strong>
+                    <small>elections participated in</small>
+                </div>
+                <div class="history-card">
+                    <span>Participation Rate</span>
+                    <strong id="history-participation">0%</strong>
+                    <small>of available elections</small>
+                </div>
+                <div class="history-card">
+                    <span>Active Eligibility</span>
+                    <strong id="history-eligibility">0</strong>
+                    <small>pending votes to cast</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="history-toolbar">
+            <input id="history-search" type="search" placeholder="Search elections or candidates...">
+            <div class="history-toolbar-actions">
+                <button class="ghost-btn" onclick="exportHistory()">Export CSV</button>
+            </div>
+        </div>
+
+        <div class="history-table-wrapper">
+            <div class="history-table-header">
+                <div>
+                    <h2>Your Voting Log</h2>
+                    <p>A complete list of your past election interactions.</p>
+                </div>
+                <span id="history-count" class="history-count-text">Showing 0 entries</span>
+            </div>
+            <div class="table-wrapper">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Election Name</th>
+                            <th>Candidate Voted For</th>
+                            <th>Timestamp</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <tr>
+                            <td colspan="6">Loading voting history...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 

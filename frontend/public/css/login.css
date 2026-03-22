@@ -134,27 +134,45 @@ font-size:13px;
 }
 
 .links{
-margin-top:15px;
-font-size:13px;
-display:flex;
-justify-content:space-between;
+    margin-top:15px;
+    font-size:13px;
+    display:flex;
+    justify-content:space-between;
 }
 
 .links a{
-color:#3B82F6;
-text-decoration:none;
+    color:#3B82F6;
+    text-decoration:none;
 }
 
 .bottom-links{
-text-align:center;
-margin-top:10px;
-font-size:13px;
+    text-align:center;
+    margin-top:10px;
+    font-size:13px;
 }
 
 .bottom-links a{
-color:#3B82F6;
-text-decoration:none;
-margin:0 5px;
+    color:#3B82F6;
+    text-decoration:none;
+    margin:0 5px;
+}
+
+.link-button{
+    background:none;
+    border:none;
+    color:#3B82F6;
+    font-size:13px;
+    cursor:pointer;
+    text-decoration:underline;
+    padding:0;
+}
+
+.login-card.candidate-card.is-hidden{
+    display:none;
+}
+
+.login-card.candidate-card.is-visible{
+    display:block;
 }
 
 .footer{

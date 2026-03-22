@@ -314,15 +314,43 @@ const candidateName = document.getElementById("candidate-name");
 const candidateIdEl = document.getElementById("candidate-id");
 const transactionEl = document.getElementById("tx");
 const timeEl = document.getElementById("time");
-const votedCandidate = localStorage.getItem("voted_candidate");
+const urlParams = new URLSearchParams(window.location.search);
+const queryCandidateId = urlParams.get("candidate_id") || urlParams.get("candidate");
+const requestedVoteId = urlParams.get("vote") || urlParams.get("vote_id");
+const votedCandidate = (
+    queryCandidateId ||
+    (typeof localStorage !== "undefined" && localStorage.getItem("voted_candidate")) ||
+    (typeof sessionStorage !== "undefined" && sessionStorage.getItem("voted_candidate")) ||
+    window.__votedCandidateFallback ||
+    null
+);
+const dashboardAnchor = getReturnAnchor();
 
 function printReceipt(){
     window.print();
 }
 
 dashboardButton.addEventListener("click", () => {
-    window.location.href = "dashboard.html";
+    window.location.href = `voter-dashboard.html${dashboardAnchor}`;
 });
+
+function getReturnAnchor(){
+    if (typeof localStorage !== "undefined") {
+        const anchor = localStorage.getItem("return_anchor");
+        if (anchor) {
+            localStorage.removeItem("return_anchor");
+            return anchor;
+        }
+    }
+    if (typeof sessionStorage !== "undefined") {
+        const anchor = sessionStorage.getItem("return_anchor");
+        if (anchor) {
+            sessionStorage.removeItem("return_anchor");
+            return anchor;
+        }
+    }
+    return "#candidates-section";
+}
 
 function formatTime(){
     return new Date().toLocaleString();
@@ -352,7 +380,7 @@ async function loadReceipt(){
         candidateImage.src = payload.image_url || candidateImage.src;
         candidateName.textContent = payload.name || "Candidate";
         candidateIdEl.textContent = `ID: ${payload.candidate_id || payload.id || "—"}`;
-        transactionEl.textContent = generateTransactionId();
+        transactionEl.textContent = requestedVoteId || generateTransactionId();
         timeEl.textContent = formatTime();
     }
     catch(err){
@@ -383,6 +411,13 @@ function createConfetti(){
 
 setTimeout(createConfetti, 1000);
 loadReceipt();
+scheduleAutoRedirect();
+
+function scheduleAutoRedirect(){
+    setTimeout(() => {
+        window.location.href = `voter-dashboard.html${dashboardAnchor}`;
+    }, 8000);
+}
 </script>
 </body>
 </html>
