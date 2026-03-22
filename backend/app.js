@@ -37,9 +37,11 @@ app.post('/login/voter', (req, res) => {
         if (err) return res.json({ success:false });
 
         if(result.length > 0){
+            const voterId = result[0].voter_id ?? result[0].id ?? result[0].voterId;
+
             req.session.user = {
                 type: 'voter',
-                voter_id: result[0].voter_id
+                voter_id: voterId
             };
 
             res.json({ success:true });
@@ -55,16 +57,25 @@ app.post('/login/voter', (req, res) => {
 // Candidate login
 app.post('/login/candidate', (req,res)=>{
 
-    const { candidate_id , password } = req.body;
+    const identifier = (req.body.identifier || '').trim();
+    const password = (req.body.password || '').trim();
 
-    const sql = `
-    SELECT * FROM candidates
-    WHERE candidate_id=? AND password=? AND status=1
-    `;
+    if(!identifier || !password){
+        return res.json({ success:false, message:"Missing credentials" });
+    }
 
-    db.query(sql,[candidate_id,password],(err,result)=>{
+    const candidateId = /^[0-9]+$/.test(identifier) ? Number(identifier) : null;
+    const sql = candidateId !== null
+        ? `SELECT * FROM candidates WHERE (candidate_id=? OR email=?) AND password=? AND status=1 LIMIT 1`
+        : `SELECT * FROM candidates WHERE email=? AND password=? AND status=1 LIMIT 1`;
 
-        if(err) return res.json({ success:false });
+    const params = candidateId !== null
+        ? [candidateId, identifier, password]
+        : [identifier, password];
+
+    db.query(sql, params, (err,result)=>{
+
+        if(err) return res.json({ success:false, message:"Database error" });
 
         if(result.length>0){
 
@@ -76,7 +87,7 @@ app.post('/login/candidate', (req,res)=>{
             res.json({ success:true });
         }
         else{
-            res.json({ success:false });
+            res.json({ success:false, message:"Invalid credentials" });
         }
 
     });
@@ -127,83 +138,35 @@ app.post('/logout',(req,res)=>{
 /* -------------------- GET CANDIDATES -------------------- */
 
 app.get('/candidates',(req,res)=>{
+    const sql = `
+    SELECT
+        c.candidate_id,
+        c.name,
+        c.party,
+        c.position,
+        c.policy,
+        c.image_url,
+        COALESCE(vc.votes, 0) AS votes
+    FROM candidates c
+    LEFT JOIN (
+        SELECT candidate_id, COUNT(*) AS votes
+        FROM votes
+        GROUP BY candidate_id
+    ) vc ON c.candidate_id = vc.candidate_id
+    WHERE c.status = 1
+    ORDER BY c.candidate_id
+    `;
 
-const sql = `
-SELECT candidate_id,name,party,position,policy,image_url
-FROM candidates
-ORDER BY candidate_id
-`;
+    db.query(sql,(err,result)=>{
 
-db.query(sql,(err,result)=>{
-
-if(err){
-console.error(err);
-return res.json({error:"Database error",details:err.message});
-}
-
-res.json(result);
-
-});
-
-});
-
-
-/* -------------------- VOTE -------------------- */
-
-app.post('/vote',(req,res)=>{
-
-    if(!req.session.user || req.session.user.type!=='voter'){
-        return res.json({ success:false , message:"Not voter"});
-    }
-
-    const voter_id = req.session.user.voter_id;
-    const { candidate_id } = req.body;
-
-
-    // check voting enabled
-    db.query(
-        "SELECT voting_enabled FROM settings WHERE id=1",
-        (err,settings)=>{
-
-            if(err || settings.length===0 || !settings[0].voting_enabled){
-                return res.json({ success:false , message:"Voting closed"});
-            }
-
-
-            // check already voted
-            db.query(
-                "SELECT * FROM votes WHERE voter_id=?",
-                [voter_id],
-                (err,result)=>{
-
-                    if(result.length>0){
-                        return res.json({ success:false , message:"Already voted"});
-                    }
-
-
-                    // insert vote
-                    db.query(
-                        "INSERT INTO votes (voter_id,candidate_id) VALUES (?,?)",
-                        [voter_id,candidate_id],
-                        (err)=>{
-
-                            if(err) return res.json({ success:false });
-
-                            db.query(
-                                "UPDATE voters SET has_voted=1 WHERE voter_id=?",
-                                [voter_id]
-                            );
-
-                            res.json({ success:true });
-
-                        }
-                    );
-
-                }
-            );
-
+        if(err){
+            console.error(err);
+            return res.json({error:"Database error",details:err.message});
         }
-    );
+
+        res.json(result);
+
+    });
 
 });
 
@@ -236,6 +199,64 @@ app.get('/results',(req,res)=>{
 
     });
 
+});
+
+
+/* -------------------- VOTER HISTORY -------------------- */
+
+app.get('/voter/history', (req, res) => {
+    if (!req.session.user || req.session.user.type !== 'voter') {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+    }
+
+    const voter_id =
+        req.session.user.voter_id ??
+        req.session.user.id ??
+        req.session.user.voterId;
+
+    if (!voter_id) {
+        return res.json({ success: false, error: "Unable to identify voter" });
+    }
+
+    const sql = `
+        SELECT
+            v.vote_id,
+            v.vote_time,
+            c.candidate_id,
+            c.name,
+            c.party,
+            c.position,
+            c.image_url
+        FROM votes v
+        JOIN candidates c ON c.candidate_id = v.candidate_id
+        WHERE v.voter_id = ?
+        ORDER BY v.vote_time DESC
+    `;
+
+    db.query(sql, [voter_id], (err, rows) => {
+        if (err) {
+            console.error("History lookup failed", err);
+            return res.json({ success: false, error: "Database error" });
+        }
+
+        const history = rows.map((row) => ({
+            vote_id: row.vote_id,
+            vote_time: row.vote_time,
+            candidate_id: row.candidate_id,
+            name: row.name,
+            party: row.party,
+            position: row.position,
+            image_url: row.image_url
+        }));
+
+        const summary = {
+            total_votes: history.length,
+            participation_rate: history.length ? 100 : 0,
+            active_eligibility: Math.max(0, 1 - history.length)
+        };
+
+        res.json({ success: true, history, summary });
+    });
 });
 
 
@@ -295,8 +316,12 @@ app.get('/admin/voters',(req,res)=>{
     }
 
     db.query(
-        "SELECT voter_id,citizen_id,laser_id,status,has_voted FROM voters",
+        "SELECT id AS voter_id, citizen_id, laser_id, status, has_voted FROM voters",
         (err,result)=>{
+            if(err){
+                console.error('Failed to load voters', err);
+                return res.json({ error: 'Unable to load voters' });
+            }
             res.json(result);
         }
     );
@@ -307,14 +332,45 @@ app.get('/admin/voters',(req,res)=>{
 // toggle voter
 app.post('/admin/toggle-voter',(req,res)=>{
 
-    const { voter_id , status } = req.body;
+    const voterId = req.body.voter_id ?? req.body.id;
+    const status = req.body.status;
+
+    if (!voterId || status === undefined) {
+        return res.json({ error: 'Missing payload' });
+    }
 
     db.query(
-        "UPDATE voters SET status=? WHERE voter_id=?",
-        [status,voter_id],
-        ()=>res.json({ success:true })
+        "UPDATE voters SET status=? WHERE id=?",
+        [status,voterId],
+        (err)=>{
+            if(err){
+                console.error('Failed to toggle voter', err);
+                return res.json({ success:false });
+            }
+            res.json({ success:true });
+        }
     );
 
+});
+
+app.post('/admin/register-voter', (req, res) => {
+    const { citizen_id, laser_id } = req.body;
+
+    if (!citizen_id || !laser_id) {
+        return res.status(400).json({ success: false, message: 'Citizen ID and Laser ID are required.' });
+    }
+
+    db.query(
+        'INSERT INTO voters (citizen_id, laser_id, status) VALUES (?, ?, 1)',
+        [citizen_id, laser_id],
+        (err) => {
+            if (err) {
+                console.error('Failed to register voter', err);
+                return res.status(500).json({ success: false, message: 'Unable to register voter.' });
+            }
+            res.json({ success: true });
+        }
+    );
 });
 
 
@@ -322,8 +378,12 @@ app.post('/admin/toggle-voter',(req,res)=>{
 app.get('/admin/candidates',(req,res)=>{
 
     db.query(
-        "SELECT candidate_id,name,policy,status FROM candidates",
+        "SELECT candidate_id, name, policy, status FROM candidates",
         (err,result)=>{
+            if(err){
+                console.error('Failed to load candidates', err);
+                return res.json({ error: 'Unable to load candidates' });
+            }
             res.json(result);
         }
     );
@@ -334,12 +394,23 @@ app.get('/admin/candidates',(req,res)=>{
 // toggle candidate
 app.post('/admin/toggle-candidate',(req,res)=>{
 
-    const { candidate_id , status } = req.body;
+    const candidateId = req.body.candidate_id ?? req.body.id;
+    const status = req.body.status;
+
+    if (!candidateId || status === undefined) {
+        return res.json({ error: 'Missing payload' });
+    }
 
     db.query(
         "UPDATE candidates SET status=? WHERE candidate_id=?",
-        [status,candidate_id],
-        ()=>res.json({ success:true })
+        [status,candidateId],
+        (err)=>{
+            if(err){
+                console.error('Failed to toggle candidate', err);
+                return res.json({ success:false });
+            }
+            res.json({ success:true });
+        }
     );
 
 });
@@ -386,6 +457,7 @@ app.get("/candidates/:id", (req, res) => {
         SELECT *
         FROM candidates
         WHERE candidate_id = ?
+        LIMIT 1
     `;
 
     db.query(sql, [id], (err, result) => {
@@ -400,6 +472,109 @@ app.get("/candidates/:id", (req, res) => {
         }
 
         res.json(result[0]);
+    });
+});
+// ===============================
+// VOTE API (REAL STORAGE)
+// ===============================
+app.post('/vote', (req, res) => {
+
+    const candidateIdentifier = req.body.candidate_id;
+
+    if (!candidateIdentifier) {
+        return res.json({ success: false, message: "Candidate missing" });
+    }
+
+    if (!req.session.user || req.session.user.type !== 'voter') {
+        return res.json({ success: false, message: "Not authenticated as voter" });
+    }
+
+    const voter_id =
+        req.session.user.voter_id ??
+        req.session.user.id ??
+        req.session.user.voterId;
+
+    if (!voter_id) {
+        return res.json({ success: false, message: "Unable to determine voter identity" });
+    }
+
+    db.query("SELECT voting_enabled FROM settings WHERE id=1", (settingErr, settings) => {
+
+        const votingEnabled =
+            settingErr
+                ? true
+                : settings.length === 0
+                    ? true
+                    : Boolean(settings[0].voting_enabled);
+
+        if (!votingEnabled) {
+            return res.json({ success: false, message: "Voting closed" });
+        }
+
+        const checkSql = "SELECT * FROM votes WHERE voter_id = ?";
+
+        db.query(checkSql, [voter_id], (err, result) => {
+
+            if (err) {
+                console.error(err);
+                return res.json({ success: false, message: "Database error" });
+            }
+
+            if (result.length > 0) {
+                return res.json({ success: false, message: "You already voted" });
+            }
+
+            const candidateSql = `
+                SELECT candidate_id
+                FROM candidates
+                WHERE candidate_id = ?
+                LIMIT 1
+            `;
+
+            db.query(candidateSql, [candidateIdentifier], (findErr, candidates) => {
+
+                if (findErr || !Array.isArray(candidates) || candidates.length === 0) {
+                    console.error("Candidate lookup failed", findErr);
+                    return res.json({ success: false, message: "Candidate not found" });
+                }
+
+                const insertSql = `
+                    INSERT INTO votes (voter_id, candidate_id)
+                    VALUES (?, ?)
+                `;
+
+                db.query(insertSql, [voter_id, candidateIdentifier], (insertErr, insertResult) => {
+
+                    if (insertErr) {
+                        console.error(insertErr);
+                        return res.json({ success: false, message: "Unable to record vote" });
+                    }
+
+                    const voteId = insertResult?.insertId ?? null;
+
+                    db.query(
+                        "UPDATE candidates SET votes = votes + 1 WHERE candidate_id = ?",
+                        [candidateIdentifier],
+                        (updateErr) => {
+                            if (updateErr) {
+                                console.error("Failed to update candidate vote count:", updateErr);
+                                return res.json({ success: false, message: "Unable to update totals" });
+                            }
+                            db.query(
+                                "UPDATE voters SET has_voted = 1 WHERE id = ?",
+                                [voter_id],
+                                (voterUpdateErr) => {
+                                    if (voterUpdateErr) {
+                                        console.error("Failed to flag voter as voted", voterUpdateErr);
+                                    }
+                                }
+                            );
+                            res.json({ success: true, vote_id: voteId, candidate_id: candidateIdentifier });
+                        }
+                    );
+                });
+            });
+        });
     });
 });
 /* -------------------- SERVER -------------------- */
