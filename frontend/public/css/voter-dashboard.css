@@ -573,6 +573,139 @@ body {
     border-collapse: collapse;
 }
 
+.live-log-card {
+    background: #FFFFFF;
+    border-radius: 18px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 20px 35px rgba(15, 23, 42, 0.08);
+    padding: 24px;
+    margin-top: 32px;
+}
+
+.live-log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.live-log-header .subtitle {
+    margin-top: 8px;
+    color: #6B7280;
+    font-size: 14px;
+}
+
+.live-log-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.live-log-entry {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: #F8FAFC;
+    border: 1px solid #E5E7EB;
+    font-size: 14px;
+}
+
+.live-log-entry strong {
+    font-size: 15px;
+    color: #1F2937;
+}
+
+.live-log-entry span {
+    font-size: 13px;
+    color: #475569;
+}
+
+.live-log-progress {
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: #E5E7EB;
+    overflow: hidden;
+    margin: 8px 0 6px;
+}
+
+.live-log-progress-fill {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    position: relative;
+}
+
+.live-log-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.live-share {
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #0F172A;
+    background: #E0E7FF;
+}
+
+.live-share.share-high {
+    background: linear-gradient(135deg, #22C55E, #10B981);
+    color: #0f172a;
+}
+
+.live-share.share-mid {
+    background: linear-gradient(135deg, #60A5FA, #3B82F6);
+    color: #fff;
+}
+
+.live-share.share-low {
+    background: linear-gradient(135deg, #FBBF24, #F59E0B);
+    color: #111827;
+}
+
+.live-share.share-minor {
+    background: linear-gradient(135deg, #E5E7EB, #F3F4F6);
+    color: #475569;
+}
+
+.live-log-progress-fill.share-high {
+    background: linear-gradient(135deg, #22C55E, #10B981);
+}
+
+.live-log-progress-fill.share-mid {
+    background: linear-gradient(135deg, #60A5FA, #3B82F6);
+}
+
+.live-log-progress-fill.share-low {
+    background: linear-gradient(135deg, #FBBF24, #F59E0B);
+}
+
+.live-log-progress-fill.share-minor {
+    background: linear-gradient(135deg, #E5E7EB, #F3F4F6);
+}
+
+
+.live-log-entry.loading {
+    justify-content: center;
+    font-style: italic;
+    color: #6B7280;
+}
+
+.ghost-btn.small {
+    padding: 8px 16px;
+    font-size: 13px;
+}
+
 .history-table th,
 .history-table td {
     padding: 14px 16px;
@@ -588,6 +721,10 @@ body {
 
 .history-table tbody tr:last-child td {
     border-bottom: none;
+}
+
+.history-table tbody td {
+    vertical-align: middle;
 }
 
 .history-candidate {
@@ -713,6 +850,19 @@ body {
         grid-template-columns: 1fr;
     }
 
+    .live-log-card {
+        padding: 20px;
+    }
+
+    .live-log-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .live-log-list {
+        gap: 10px;
+    }
+
     .footer {
         flex-direction: column;
         align-items: center;
@@ -797,6 +947,120 @@ text-align:center;
 
 .history-card small{
     color:#94A3B8;
+}
+
+@media (max-width: 640px) {
+    body {
+        background: #eef2f7;
+    }
+
+    .main-content {
+        padding: 20px 16px 30px;
+    }
+
+    .container {
+        padding-top: 0;
+    }
+
+    .header {
+        padding: 12px 16px;
+        position: fixed;
+        width: 100%;
+        top: 0;
+        background: #fff;
+        z-index: 1200;
+    }
+
+    .history-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .history-toolbar input,
+    .history-toolbar-actions {
+        width: 100%;
+    }
+
+    .history-table-wrapper {
+        padding: 18px;
+    }
+
+    .history-table {
+        width: 100%;
+    }
+
+    .history-table tbody tr {
+        border-radius: 20px;
+        margin-bottom: 16px;
+    }
+
+    .history-table tbody td {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 6px 0;
+    }
+
+    .live-log-card {
+        padding: 18px;
+    }
+
+    .live-log-entry {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px 12px;
+    }
+
+    .live-log-entry span {
+        margin-top: 4px;
+    }
+
+    .history-table tbody td::before {
+        content: attr(data-label);
+        font-size: 12px;
+        color: #9CA3AF;
+        font-weight: 600;
+        flex: 1 1 110px;
+    }
+
+    .history-table td[data-label="ID"]::after {
+        content: "";
+        flex: 1;
+    }
+
+    .history-table .history-candidate span {
+        font-size: 15px;
+    }
+
+    .history-table img {
+        width: 44px;
+        height: 44px;
+    }
+
+    .stats-grid,
+    .history-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .history-card {
+        width: 100%;
+    }
+
+    .history-toolbar input {
+        min-width: 0;
+    }
+
+    .stats-grid .stat-card {
+        min-height: 140px;
+    }
+
+    .quick-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .history-table tbody td[data-label="Actions"] {
+        justify-content: flex-end;
+    }
 }
 
 .history-toolbar{
@@ -909,4 +1173,62 @@ text-align:center;
     text-align:center;
     padding:40px;
     color:#94A3B8;
+}
+
+@media (max-width: 640px) {
+    .history-table {
+        width: 100%;
+    }
+
+    .history-table thead {
+        display: none;
+    }
+
+    .history-table tbody tr {
+        display: block;
+        border: 1px solid #E5E7EB;
+        border-radius: 20px;
+        padding: 16px;
+        margin-bottom: 1rem;
+        box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+        background: #fff;
+    }
+
+    .history-table tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: none;
+    }
+
+    .history-table tbody td::before {
+        content: attr(data-label);
+        font-size: 12px;
+        color: #6B7280;
+        font-weight: 600;
+        flex: 0 0 110px;
+    }
+
+    .history-table td[data-label="Actions"] {
+        justify-content: flex-end;
+    }
+
+    .history-table .history-candidate {
+        gap: 8px;
+    }
+
+    .history-table .history-candidate img {
+        width: 44px;
+        height: 44px;
+    }
+
+    .history-table .history-candidate span {
+        font-size: 14px;
+    }
+
+    .history-table td:nth-child(2) {
+        flex-direction: column;
+        gap: 4px;
+    }
 }

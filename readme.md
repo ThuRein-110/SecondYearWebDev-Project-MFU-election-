@@ -7,7 +7,9 @@ This repository contains the backend and frontend for a university election plat
 - **Voter authentication:** voters log in with their Thai citizen ID and laser ID (no shared passwords). Requests to `/login/voter` verify the credentials and establish a session.
 - **Candidate authentication:** candidates log in via email or candidate ID plus a password stored in the database; sessions identify them for profile updates.
 - **Admin control panel:** admins can review voters/candidates, toggle their `status` (enable/disable), toggle the global voting switch, and export data.
-- **Voting & history:** voters can cast one vote, incrementing the candidate tally, and later view a history receipt that links to `receipt.html` from the dashboard.
+- **Voting & history:** voters can cast one vote, incrementing the candidate tally, and later view a history receipt that links to `receipt.html` from the dashboard. The voter history page also now surfaces a live voting log from `/votes/recent`, which always returns the candidate leaderboard (even zero-vote candidates) plus color-coded bars that show their current vote share so you can follow every campaign.
+- **Candidate performance dashboard:** the refreshed `candidate-dashboard` now fetches `/candidate/dashboard` to show live vote totals, rank, turnout, a vote-trend line chart, and a leaderboard. The “Trend” number is the server-reported delta between your vote total and the next closest candidate, so a positive value means you are gaining ground; the campaign-goal meter targets 60 votes (matching the 50-user seed) so the progress bar reflects the real objective instead of an arbitrary 2,000-vote benchmark.
+- The dashboard also renders a responsive “Momentum Meter” below the leaderboard that turns each top candidate into a horizontal bar (with vote and share labels), so the layout behaves like the reference chart on phones and desktops alike.
 
 ## Admin enable / disable behavior
 

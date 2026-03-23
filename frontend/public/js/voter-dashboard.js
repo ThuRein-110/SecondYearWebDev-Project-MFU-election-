@@ -2,6 +2,7 @@ let sidebarOpen = false;
 let cachedCandidates = [];
 let historyRecords = [];
 let historySearchInputEl = null;
+let liveLogRecords = [];
 const dashboardErrorEl = document.getElementById('dashboard-error');
 
 const searchInput = document.getElementById('candidate-search');
@@ -315,6 +316,7 @@ async function loadHistory() {
     historyRecords = Array.isArray(payload.history) ? payload.history : [];
     updateHistorySummary(payload.summary || {});
     renderHistoryTable(historySearchInputEl?.value || "");
+    loadLiveLog();
 }
 
 function updateHistorySummary(summary) {
@@ -367,18 +369,18 @@ function renderHistoryTable(filterTerm = "") {
         const timestamp = formatTimestamp(record.vote_time);
         return `
         <tr>
-            <td>#${String(record.vote_id).padStart(3, "0")}</td>
-            <td>
+            <td data-label="ID">#${String(record.vote_id).padStart(3, "0")}</td>
+            <td data-label="Election Name">
                 <strong>MFU Student Council ${new Date(record.vote_time).getFullYear()}</strong><br>
                 <small>${record.position || "Representative"} • ${record.party || "General"}</small>
             </td>
-            <td class="history-candidate">
+            <td data-label="Candidate" class="history-candidate">
                 <img src="${resolveCandidateImage(record)}" alt="${record.name || 'Candidate photo'}">
                 <span>${record.name || "Unknown Candidate"}</span>
             </td>
-            <td>${timestamp}</td>
-            <td><span class="status-chip">Completed</span></td>
-        <td><button class="history-action-btn" onclick="viewReceipt(${record.vote_id}, ${record.candidate_id || 0})">View</button></td>
+            <td data-label="Timestamp">${timestamp}</td>
+            <td data-label="Status"><span class="status-chip">Completed</span></td>
+        <td data-label="Actions"><button class="history-action-btn" onclick="viewReceipt(${record.vote_id}, ${record.candidate_id || 0})">View</button></td>
         </tr>
         `;
     }).join("");
@@ -393,6 +395,78 @@ function updateHistoryCount(filtered, total) {
             ? `Showing ${total} entries`
             : `Showing ${filtered} of ${total} entries`;
     }
+}
+
+async function loadLiveLog(limit = 6) {
+    const response = await fetch(`/votes/recent?limit=${limit}`);
+    if (!response.ok) {
+        renderLiveLog([]);
+        return;
+    }
+
+    const payload = await response.json();
+    if (!payload || !payload.success) {
+        renderLiveLog([]);
+        return;
+    }
+
+    const overallVotes = payload.overall_votes || 0;
+    const rawLog = (Array.isArray(payload.liveLog) ? payload.liveLog : []).map(entry => {
+        const share = overallVotes
+            ? Math.min(100, Math.round((entry.candidate_votes / overallVotes) * 100))
+            : 0;
+        return { ...entry, sharePercent: share };
+    }).sort((a, b) => (b.sharePercent ?? 0) - (a.sharePercent ?? 0));
+    const unique = {};
+    rawLog.forEach(entry => {
+        const key = entry.candidate_id ?? entry.name;
+        if (!unique[key] || new Date(entry.vote_time) > new Date(unique[key].vote_time || 0)) {
+            unique[key] = entry;
+        }
+    });
+    liveLogRecords = Object.values(unique).sort((a,b)=> (b.sharePercent ?? 0)-(a.sharePercent ?? 0));
+
+    renderLiveLog(liveLogRecords);
+}
+
+function renderLiveLog(entries) {
+    const list = document.getElementById("live-log-list");
+    if (!list) return;
+    if (!entries.length) {
+        list.innerHTML = `<li class="live-log-entry loading">Waiting for more ballots to arrive.</li>`;
+        return;
+    }
+
+    list.innerHTML = entries.map(entry => {
+        const timeLabel = formatTimestamp(entry.vote_time);
+        const candidateLabel = `${entry.name || "Unknown Candidate"} · ${entry.party || "Independent"}`;
+        const share = entry.sharePercent ?? 0;
+        const shareLabel = entry.sharePercent ? `${entry.sharePercent}%` : "0%";
+        const colorClass = shareToColor(entry.sharePercent || 0);
+        const candidateIdLabel = `CAN-${String(entry.candidate_id || 0).padStart(3, '0')}`;
+        return `
+            <li class="live-log-entry">
+                <div>
+                    <strong>${candidateLabel}</strong>
+                    <span>${entry.position || "Candidate"} · ${candidateIdLabel}</span>
+                </div>
+                <div class="live-log-progress">
+                    <span class="live-log-progress-fill ${colorClass}" style="width:${share}%"></span>
+                </div>
+                <div class="live-log-meta">
+                    <span class="live-share ${colorClass}">${shareLabel}</span>
+                    <span>${timeLabel}</span>
+                </div>
+            </li>
+        `;
+    }).join("");
+}
+
+function shareToColor(percent) {
+    if (percent >= 40) return 'share-high';
+    if (percent >= 20) return 'share-mid';
+    if (percent >= 5) return 'share-low';
+    return 'share-minor';
 }
 
 function formatTimestamp(value) {

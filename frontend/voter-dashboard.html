@@ -6,6 +6,7 @@
     <title>Voter Dashboard - MFU Election</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="public/css/voter-dashboard.css">
+    <link rel="stylesheet" href="public/css/responsive.css">
 </head>
 <body>
     <div class="header">
@@ -225,8 +226,22 @@ placeholder="Search by name, party, or candidate ID..."
                         </tr>
                     </tbody>
                 </table>
-            </div>
         </div>
+    </div>
+
+        <div class="live-log-card" id="live-log-card">
+            <div class="live-log-header">
+                <div>
+                    <h2>Live Voting Log</h2>
+                    <p class="subtitle">See the most recent ballots submitted by other voters.</p>
+                </div>
+                <button class="ghost-btn small" onclick="loadLiveLog()">Refresh</button>
+            </div>
+            <ul id="live-log-list" class="live-log-list">
+                <li class="live-log-entry loading">Loading live activity...</li>
+            </ul>
+        </div>
+
     </div>
 
 </div>

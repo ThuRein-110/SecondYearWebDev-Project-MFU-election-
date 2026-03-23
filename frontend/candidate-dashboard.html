@@ -6,6 +6,7 @@
     <title>Candidate Dashboard - MFU Election</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="public/css/candidate-dashboard.css">
+    <link rel="stylesheet" href="public/css/responsive.css">
 </head>
 <body>
     <div class="header">
@@ -31,31 +32,166 @@
         </div>
         <div class="main-content">
             <div id="dashboard-section" class="section active">
-                <h1>Dashboard Overview</h1>
-                <div class="stats-grid" id="stats"></div>
-                <div class="quick-actions">
-                    <div class="action-card primary" onclick="showSection('profile')">
-                        <h3>📝 Update Your Information</h3>
-                        <p>Keep your profile current</p>
+                <div class="dashboard-header">
+                    <div>
+                        <h1>Performance Overview</h1>
+                        <p>Track your real-time ranking, votes, and voter turnout.</p>
                     </div>
-                    <div class="action-card" onclick="showSection('results')">
-                        <h3>📊 View Election Results</h3>
-                        <p>See how you're doing</p>
+                    <div class="dashboard-actions">
+                        <button class="ghost-btn" onclick="showSection('profile')">Manage Profile</button>
+                        <button class="btn-primary" id="refresh-stats">Refresh Stats</button>
+                    </div>
+                </div>
+                <div class="stats-grid" id="stats-grid">
+                    <!-- stats rendered by JS -->
+                </div>
+                <div class="dashboard-body">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div>
+                                <h3>Voting Performance</h3>
+                                <p>Cumulative vote count over the last 12 hours.</p>
+                            </div>
+                            <div class="chart-controls">
+                                <button class="ghost-btn small">Today</button>
+                                <button class="ghost-btn small">Export</button>
+                            </div>
+                        </div>
+                        <div class="chart-legend" id="chart-legend">
+                            <span class="legend-line"></span>
+                            <span class="legend-label">Votes</span>
+                        </div>
+                        <canvas id="votes-chart"></canvas>
+                    </div>
+                    <div class="candidate-summary-card">
+                        <div class="summary-avatar">
+                            <img id="dashboard-avatar" src="https://via.placeholder.com/120" alt="Candidate photo">
+                        </div>
+                        <div class="summary-name">
+                            <h3 id="dashboard-name">Candidate</h3>
+                            <p id="dashboard-id">Candidate ID • —</p>
+                        </div>
+                        <div class="summary-vision">
+                            <p id="dashboard-vision">Share your vision statement with voters.</p>
+                        </div>
+                        <div class="summary-stats">
+                            <div>
+                                <span>Primary Policy</span>
+                                <strong id="dashboard-policy">—</strong>
+                            </div>
+                            <div>
+                                <span>Votes</span>
+                                <strong id="dashboard-votes">0</strong>
+                            </div>
+                        </div>
+                        <button class="ghost-btn">Candidate Statement</button>
+                    </div>
+                </div>
+                <div class="dashboard-row">
+                    <div class="leaderboard-card">
+                        <div class="card-header">
+                            <h3>Top Candidates</h3>
+                            <a href="#" onclick="showSection('results')">Full Leaderboard →</a>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Candidate</th>
+                                    <th>Votes</th>
+                                    <th>Trend</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboard-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="leaderboard-bars-card">
+                        <div class="card-header">
+                            <h3>Momentum Meter</h3>
+                            <p>Responsive vote share bars for every device.</p>
+                        </div>
+                        <div id="leaderboard-bars" class="leaderboard-bars-list">
+                            <!-- bars inserted here -->
+                        </div>
+                    </div>
+                    <div class="activity-card">
+                        <div class="card-header">
+                            <h3>Recent Support Activity</h3>
+                        </div>
+                        <ul id="activity-list"></ul>
+                    </div>
+                    <div class="goal-card">
+                        <h3>Campaign Goal</h3>
+                        <p>Target 60 votes</p>
+                        <div class="progress">
+                            <div class="progress-bar" id="goal-progress"></div>
+                        </div>
+                        <p id="goal-text">You are just 548 votes away from your milestone.</p>
                     </div>
                 </div>
             </div>
             <div id="profile-section" class="section">
-                <h1>Update Your Information</h1>
-                <div class="form-card">
-                    <div class="form-group">
-                        <label for="name">Your Name</label>
-                        <input type="text" id="name" placeholder="Enter your name">
+                <div class="profile-header">
+                    <h1>Candidate Profile Management</h1>
+                    <p>Complete your registration and keep your profile in sync with the official voter landing page.</p>
+                </div>
+                <div class="profile-grid">
+                    <div class="profile-forms">
+                        <div class="profile-panel">
+                            <div class="panel-header">
+                                <h3>Authentication & Identity</h3>
+                                <p>Secure your candidate account.</p>
+                            </div>
+                            <div class="panel-body">
+                                <label>Candidate ID (official)</label>
+                                <input type="text" id="candidate-id" readonly>
+                                <label>Account Password</label>
+                                <input type="password" value="********" disabled>
+                            </div>
+                        </div>
+                        <div class="profile-panel">
+                            <div class="panel-header">
+                                <h3>Candidate Details</h3>
+                                <p>Introduce yourself with a professional name, vision, and manifesto.</p>
+                            </div>
+                            <div class="panel-body">
+                                <label for="name">Full Name (as displayed on ballot)</label>
+                                <input type="text" id="name" placeholder="Enter your name">
+                                <label for="policy">Campaign Biography</label>
+                                <textarea id="policy" placeholder="Advocate for your campus promises" rows="4"></textarea>
+                                <label for="vision">Vision</label>
+                                <textarea id="vision" placeholder="Describe your long-term vision" rows="3"></textarea>
+                                <label for="manifesto">Manifesto</label>
+                                <textarea id="manifesto" placeholder="Summarize key commitments" rows="3"></textarea>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="policy">Your Policy/Platform</label>
-                        <textarea id="policy" placeholder="Describe your policies and platform" rows="6"></textarea>
+                    <div class="profile-summary">
+                        <div class="summary-card">
+                            <div class="summary-avatar">
+                                <img id="candidate-avatar" src="https://via.placeholder.com/140" alt="Candidate photo">
+                            </div>
+                            <div class="summary-name">
+                                <h3 id="profile-name">Candidate Name</h3>
+                                <p id="profile-role">Candidate</p>
+                            </div>
+                            <div class="summary-vision">
+                                <p id="profile-policy" class="summary-policy">Share a bold vision for the campus.</p>
+                                <p id="profile-manifesto" class="summary-manifesto">Summarize your manifesto commitments for voters.</p>
+                            </div>
+                            <div class="summary-stats">
+                                <div>
+                                    <span>Votes</span>
+                                    <strong id="profile-votes">0</strong>
+                                </div>
+                            </div>
+                            <button class="btn-primary" id="save-profile" onclick="updateInfo()">Save & Update Profile</button>
+                            <button class="btn-secondary" onclick="discardChanges()">Discard Changes</button>
+                            <div class="profile-status">
+                                <p>Your profile is live and visible to voters in the Candidate List.</p>
+                            </div>
+                        </div>
                     </div>
-                    <button class="btn-primary" onclick="updateInfo()">Update Information</button>
                 </div>
             </div>
             <div id="results-section" class="section">

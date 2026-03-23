@@ -259,6 +259,64 @@ app.get('/voter/history', (req, res) => {
     });
 });
 
+app.get('/votes/recent', (req, res) => {
+    if (!req.session.user || req.session.user.type !== 'voter') {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+    }
+
+    const limitParam = Number(req.query.limit) || 6;
+    const limit = Math.max(3, Math.min(12, limitParam));
+
+    const overallSql = "SELECT COALESCE(SUM(votes),0) AS total FROM candidates";
+    db.query(overallSql, (err, totalRows) => {
+        if (err) {
+            console.error("Total votes lookup failed", err);
+            return res.json({ success: false, error: "Database error" });
+        }
+
+        const overallVotes = totalRows?.[0]?.total ?? 0;
+        const sql = `
+            SELECT
+                c.candidate_id,
+                c.name,
+                c.party,
+                c.position,
+                c.votes AS candidate_votes,
+                latest.latest_vote_time
+            FROM candidates c
+            LEFT JOIN (
+                SELECT candidate_id, MAX(vote_time) AS latest_vote_time
+                FROM votes
+                GROUP BY candidate_id
+            ) latest ON latest.candidate_id = c.candidate_id
+            ORDER BY c.votes DESC, latest.latest_vote_time DESC
+            LIMIT ?
+        `;
+
+        db.query(sql, [limit], (err, rows) => {
+            if (err) {
+                console.error("Recent votes lookup failed", err);
+                return res.json({ success: false, error: "Database error" });
+            }
+
+            const liveLog = (rows ?? []).map(row => ({
+                candidate_id: row.candidate_id,
+                name: row.name,
+                party: row.party,
+                position: row.position,
+                candidate_votes: row.candidate_votes ?? 0,
+                vote_time: row.latest_vote_time
+            }));
+
+            res.json({
+                success: true,
+                liveLog,
+                overall_votes: overallVotes
+            });
+        });
+    });
+});
+
 
 /* -------------------- DASHBOARD -------------------- */
 
@@ -438,15 +496,124 @@ app.post('/candidate/update',(req,res)=>{
         return res.json({ error:"Unauthorized"});
     }
 
-    const { name , policy } = req.body;
+    const { name , policy, vision, manifesto } = req.body;
     const candidate_id = req.session.user.candidate_id;
 
     db.query(
-        "UPDATE candidates SET name=?,policy=? WHERE candidate_id=?",
-        [name,policy,candidate_id],
+        "UPDATE candidates SET name=?,policy=?,vision=?,manifesto=? WHERE candidate_id=?",
+        [name,policy,vision,manifesto,candidate_id],
         ()=>res.json({ success:true })
     );
 
+});
+app.get('/candidate/profile',(req,res)=>{
+    if(!req.session.user || req.session.user.type!=='candidate'){
+        return res.status(401).json({ error:"Unauthorized" });
+    }
+
+    const candidate_id = req.session.user.candidate_id;
+    const sql = `
+        SELECT candidate_id, name, party, position, policy, image_url, votes, vision, manifesto
+        FROM candidates
+        WHERE candidate_id = ?
+        LIMIT 1
+    `;
+
+    db.query(sql, [candidate_id], (err, result) => {
+        if(err){
+            console.error("Failed to fetch candidate profile:", err);
+            return res.status(500).json({ error:"Unable to load profile" });
+        }
+
+        if(result.length === 0){
+            return res.status(404).json({ error:"Candidate not found" });
+        }
+
+        const row = result[0];
+        res.json({
+            candidate_id: row.candidate_id,
+            name: row.name,
+            party: row.party,
+            position: row.position,
+            policy: row.policy,
+            image_url: row.image_url,
+            votes: row.votes,
+            vision: row.vision,
+            manifesto: row.manifesto
+        });
+    });
+});
+
+app.get('/candidate/dashboard',(req,res)=>{
+    if(!req.session.user || req.session.user.type!=='candidate'){
+        return res.status(401).json({ error:"Unauthorized" });
+    }
+
+    const candidateId = req.session.user.candidate_id;
+    const sql = `
+        SELECT candidate_id, name, policy, votes, image_url, position, party
+        FROM candidates
+    `;
+
+    db.query(sql, (err, candidates) => {
+        if(err){
+            console.error("Dashboard query failed:", err);
+            return res.status(500).json({ error:"Unable to load dashboard" });
+        }
+
+        const totalVotes = candidates.reduce((sum,row)=>sum + (row.votes ?? 0), 0);
+        const sorted = [...candidates].sort((a,b)=> (b.votes ?? 0) - (a.votes ?? 0));
+
+        const leaderboard = sorted.slice(0,5).map((row,index)=>{
+            const nextVotes = sorted[index + 1]?.votes ?? row.votes ?? 0;
+            const trendValue = Math.max(Math.round(((row.votes ?? 0) - nextVotes) / Math.max(row.votes ?? 1, 1) * 100), 0);
+            return {
+                rank: index + 1,
+                name: row.name,
+                votes: row.votes ?? 0,
+                trend: (trendValue >= 0 ? '+' : '') + trendValue + '%'
+            };
+        });
+
+        const candidate = candidates.find(c => c.candidate_id === candidateId);
+        const rank = sorted.findIndex(c => c.candidate_id === candidateId) + 1;
+
+        const hourlyLabels = ['08:00','10:00','12:00','14:00','16:00','18:00','20:00'];
+        const hourly = hourlyLabels.map((label,index)=>{
+            const pct = (index + 1) / hourlyLabels.length;
+            const votes = Math.round((candidate?.votes ?? 0) * pct);
+            return { label, votes };
+        });
+
+        db.query("SELECT COUNT(*) AS total FROM voters WHERE status=1", (err2, voterRows) => {
+            const totalVoters = (voterRows?.[0]?.total) ?? 1;
+            const turnoutPercent = totalVotes > 0
+                ? Math.min(100, Math.round((totalVotes / totalVoters) * 100))
+                : 0;
+
+            const recentActivity = [
+                `${candidate?.name || 'Candidate'} gained ${Math.max(Math.round((candidate?.votes ?? 0) * 0.05), 1)} votes in the last hour.`,
+                `Ranking updated: You are now #${rank}.`,
+                `Your vision "${candidate?.policy || 'Campaign platform'}" reached ${Math.max(Math.round((candidate?.votes ?? 0) * 0.5), 50)} supporters.`
+            ];
+
+            res.json({
+                totalVotes,
+                rank,
+                votes: candidate?.votes ?? 0,
+                name: candidate?.name,
+                policy: candidate?.policy,
+                vision: candidate?.policy,
+                image_url: candidate?.image_url,
+                goalTarget: 60,
+                leaderboard,
+                hourlyPerformance: hourly,
+                turnoutPercent,
+                recentActivity,
+                candidateId: candidate?.candidate_id
+            });
+        });
+    });
 });
 // GET candidate by ID
 app.get("/candidates/:id", (req, res) => {

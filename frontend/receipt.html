@@ -258,7 +258,103 @@ body {
         text-align: center;
     }
 }
+
+@media (max-width: 640px) {
+    body {
+        padding: 0;
+        align-items: flex-start;
+        background: #e4e9f6;
+    }
+
+    .glow {
+        display: none;
+    }
+
+    .container {
+        width: 100%;
+        padding: 0 12px;
+        margin: 0;
+    }
+
+    .card {
+        width: min(460px, 100%);
+        margin: 20px auto;
+        padding: 24px 18px 22px;
+        border-radius: 18px;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+    }
+
+    .success-wrapper {
+        padding-top: 20px;
+    }
+
+    .selected-candidate {
+        gap: 12px;
+    }
+
+    .detail-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .action-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        align-items: stretch;
+        padding: 20px 12px;
+    }
+
+    .container {
+        width: 100%;
+        padding: 0;
+    }
+
+    .card {
+        margin-top: 12px;
+        padding: 22px 16px;
+        border-radius: 20px;
+    }
+
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .detail-card {
+        padding: 14px 16px;
+    }
+
+    .selected-candidate {
+        gap: 12px;
+    }
+
+    .info-note {
+        font-size: 13px;
+    }
+
+    .success-wrapper h1 {
+        font-size: 24px;
+    }
+
+    .action-row {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
 </style>
+    <link rel="stylesheet" href="public/css/responsive.css">
 </head>
 <body>
 <div class="glow"></div>
@@ -370,7 +466,7 @@ async function loadReceipt(){
     }
 
     try{
-        const res = await fetch(`http://localhost:3000/candidates/${votedCandidate}`);
+        const res = await fetch(`/candidates/${votedCandidate}`);
         const payload = await res.json();
 
         if(payload.error){
