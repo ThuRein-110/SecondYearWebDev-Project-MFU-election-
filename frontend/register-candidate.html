@@ -3,93 +3,102 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MFU Election - Candidate Registration</title>
+  <title>Register Candidate Access</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="public/css/login.css">
-    <link rel="stylesheet" href="public/css/responsive.css">
+  <link rel="stylesheet" href="public/css/responsive.css">
 </head>
 <body>
 
-<div class="page">
-
-    <!-- HEADER -->
-    <div class="top-header">
+<div class="page-shell">
+    <div class="hero">
         <div class="logo">
             <i class="fa-solid fa-square-check"></i>
             <span>MFU Election Voting</span>
         </div>
-        <div class="subtitle">
-            University Student Council General Election<br>
-            2024
-        </div>
+        <p class="subtitle">Candidate Registration · MFU Student Election 2024</p>
     </div>
 
-    <!-- LOGIN CARD -->
-    <div class="login-card">
-
+    <div class="login-card register-card register-card--compact">
         <div class="verified">
-            <i class="fa-solid fa-shield-halved"></i>
-            SYSTEM SECURE & VERIFIED
-        </div>
-
-        <h2>Candidate Registration Portal</h2>
-        <p class="desc">Join the MFU Student Council Election</p>
-
-        <!-- Candidate Icon -->
-        <div class="fingerprint-box">
             <i class="fa-solid fa-user-plus"></i>
+            REQUEST CANDIDATE ACCESS
         </div>
 
-        <form onsubmit="event.preventDefault(); submitRegistration();">
+        <h2>Submit Campaign Details</h2>
+        <p class="desc">Tell us your campaign basics so the election team can grant access.</p>
 
-            <label>CANDIDATE ID</label>
-            <input id="candidate-id" type="text" placeholder="Enter candidate ID" required autocomplete="off" />
+        <form id="candidate-register-form">
+            <label>Full Name</label>
+            <input type="text" name="name" placeholder="Candidate name" required />
 
-            <label>FULL NAME</label>
-            <input id="candidate-name" type="text" placeholder="Your full name" required autocomplete="off" />
+            <label>Email</label>
+            <input type="email" name="email" placeholder="name@institution.edu" required />
 
-            <label>CAMPAIGN QUOTE</label>
-            <input id="candidate-policy" type="text" placeholder="Short campaign quote" required autocomplete="off" />
+            <label>Party / Club</label>
+            <input type="text" name="party" placeholder="Student Voice" required />
 
-            <button class="btn">
-                Register as Candidate
-                <i class="fa-solid fa-arrow-right"></i>
+            <label>Position</label>
+            <input type="text" name="position" placeholder="President / Representative" required />
+
+            <label>Desired Password</label>
+            <input type="password" name="password" placeholder="Create a secure password" required />
+
+            <label>Profile Image URL <span class="optional">(optional)</span></label>
+            <input type="url" name="image_url" placeholder="https://example.com/photo.jpg" />
+
+            <label>Vision Statement <span class="optional">(optional)</span></label>
+            <textarea name="vision" rows="2" placeholder="A short vision for your campaign"></textarea>
+
+            <label>Manifesto <span class="optional">(optional)</span></label>
+            <textarea name="manifesto" rows="3" placeholder="Highlight your top priorities"></textarea>
+
+            <button type="submit" class="btn btn--wide">
+                Submit Request
+                <i class="fa-solid fa-paper-plane"></i>
             </button>
-
         </form>
 
-        <!-- Info -->
-        <div class="security-box">
-            <b>Candidate Registration</b>
-            <p>
-            This registration form is a UI prototype. Candidate approval requires
-            administrator verification before appearing on the ballot.
+        <div class="alt-actions square-group login-links">
+            <a href="login.html">Voter Login</a>
+            <a href="candidate-login.html">Candidate Login</a>
+            <a href="admin-login.html">Admin Login</a>
         </div>
-
-        <div class="links">
-            <span>Need help?</span>
-            <a href="#">Help Center</a>
-        </div>
-
-        <div class="bottom-links">
-            <a href="login.html">Back to Voter Login</a>
-            •
-            <a href="admin-login.html">Administrator Login</a>
-        </div>
-
+        <p class="register-note">Applications are manually reviewed — expect a follow-up within 24 hours.</p>
     </div>
 
+    <div class="floating-footer">Need quick support? <a href="mailto:help@mfu.ac.th">help@mfu.ac.th</a></div>
 </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('year').textContent = new Date().getFullYear();
-    });
-
-    async function submitRegistration() {
-      alert('Candidate registration is not available in this demo.');
+<script>
+const form = document.getElementById('candidate-register-form');
+form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const apiData = Object.fromEntries(new FormData(form).entries());
+    const payload = {
+        name: apiData.name,
+        party: apiData.party,
+        position: apiData.position,
+        email: apiData.email,
+        password: apiData.password,
+        image_url: apiData.image_url || null,
+        vision: apiData.vision || null,
+        manifesto: apiData.manifesto || null
+    };
+    try {
+        const res = await fetch('/candidate/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const payloadResponse = await res.json();
+        alert(payloadResponse.message || 'Request submitted. We will contact you once approved.');
+        if (res.ok) form.reset();
+    } catch (error) {
+        alert('Unable to submit request right now.');
     }
-  </script>
+});
+</script>
 </body>
 </html>

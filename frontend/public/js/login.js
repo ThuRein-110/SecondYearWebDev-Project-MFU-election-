@@ -1,7 +1,3 @@
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('year').textContent = new Date().getFullYear();
-});
-
 async function submitLogin() {
     const citizenId = document.getElementById('citizen-id').value.trim();
     const laserId = document.getElementById('laser-id').value.trim();

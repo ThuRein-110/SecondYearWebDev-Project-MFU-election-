@@ -1,190 +1,223 @@
-*{
-box-sizing:border-box;
-margin:0;
-padding:0;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-body{
-font-family:'Inter',sans-serif;
-background:#F3F6FA;
-display:flex;
-justify-content:center;
-align-items:center;
-min-height:100vh;
-color:#1F2937;
+body {
+  margin: 0;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  background: radial-gradient(circle at top, #e0edff 0%, #edf0f5 55%, #f5f6fb 100%);
+  color: #101828;
+  min-height: 100vh;
 }
 
-.page{
-text-align:center;
-width:100%;
-max-width:500px;
+.page-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px 48px;
+  gap: 32px;
 }
 
-.top-header{
-margin-bottom:25px;
+.hero {
+  text-align: center;
 }
 
-.logo{
-font-size:20px;
-font-weight:700;
-color:#3B82F6;
-display:flex;
-justify-content:center;
-gap:10px;
-align-items:center;
+.logo {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2563eb;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.subtitle{
-font-size:13px;
-color:#6B7280;
-margin-top:5px;
+.hero .subtitle {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #58687c;
 }
 
-.login-card{
-background:white;
-border-radius:14px;
-padding:28px;
-box-shadow:0 10px 35px rgba(0,0,0,0.08);
-border:1px solid #E5E7EB;
-text-align:left;
+.login-card {
+  width: min(420px, 100%);
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 32px;
+  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.15);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  position: relative;
 }
 
-.verified{
-font-size:12px;
-border:1px solid #E5E7EB;
-border-radius:20px;
-padding:6px 12px;
-text-align:center;
-margin-bottom:20px;
-color:#6B7280;
+.login-card .verified {
+  border-radius: 32px;
+  border: 1px solid #e4e7ec;
+  padding: 8px 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #475467;
+  margin-bottom: 20px;
 }
 
-.login-card h2{
-text-align:center;
-margin-bottom:5px;
+.login-card h2 {
+  margin-bottom: 6px;
+  font-size: 22px;
+  text-align: center;
 }
 
-.desc{
-text-align:center;
-font-size:13px;
-color:#6B7280;
-margin-bottom:20px;
+.login-card .desc {
+  margin-bottom: 28px;
+  text-align: center;
+  color: #52606d;
+  font-size: 14px;
 }
 
-.fingerprint-box{
-background:#EAF2FF;
-height:70px;
-display:flex;
-align-items:center;
-justify-content:center;
-border-radius:10px;
-margin-bottom:20px;
-font-size:30px;
-color:#3B82F6;
+.login-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-form label{
-font-size:12px;
-font-weight:600;
-color:#6B7280;
-margin-top:10px;
-display:block;
+.login-card label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #667085;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
-form input{
-width:100%;
-padding:12px;
-border-radius:10px;
-border:1px solid #E5E7EB;
-margin-top:5px;
-margin-bottom:3px;
+.login-card input {
+  border-radius: 14px;
+  border: 1px solid #e4e7ec;
+  padding: 14px 16px;
+  font-size: 15px;
+  color: #0f172a;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
 }
 
-form small{
-font-size:11px;
-color:#9CA3AF;
+.login-card input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.2);
 }
 
-.btn{
-width:100%;
-margin-top:18px;
-background:#3B82F6;
-border:none;
-padding:13px;
-color:white;
-font-weight:600;
-border-radius:10px;
-cursor:pointer;
-display:flex;
-justify-content:center;
-align-items:center;
-gap:8px;
+.login-card .btn {
+  margin-top: 20px;
+  border-radius: 16px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 15px 20px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
-.btn:hover{
-background:#2563EB;
+.login-card .btn:hover {
+  background: #1d4ed8;
 }
 
-.security-box{
-margin-top:20px;
-background:#F1F5F9;
-padding:15px;
-border-radius:10px;
-font-size:13px;
+.alt-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.links{
-    margin-top:15px;
-    font-size:13px;
-    display:flex;
-    justify-content:space-between;
+.alt-actions a {
+  color: #1f2937;
+  text-decoration: none;
+  padding: 14px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  width: 100%;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.07);
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 
-.links a{
-    color:#3B82F6;
-    text-decoration:none;
+.alt-actions a:hover {
+  background: #f8fafc;
+  transform: translateY(-1px);
 }
 
-.bottom-links{
-    text-align:center;
-    margin-top:10px;
-    font-size:13px;
+.alt-actions.square-group {
+  width: 100%;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  box-shadow: none;
+  background: none;
+  padding: 0;
+  border-radius: 0;
 }
 
-.bottom-links a{
-    color:#3B82F6;
-    text-decoration:none;
-    margin:0 5px;
+.floating-footer {
+  font-size: 13px;
+  color: #475467;
 }
 
-.link-button{
-    background:none;
-    border:none;
-    color:#3B82F6;
-    font-size:13px;
-    cursor:pointer;
-    text-decoration:underline;
-    padding:0;
+.floating-footer a {
+  color: #0f172a;
+  font-weight: 600;
+  text-decoration: none;
 }
 
-.login-card.candidate-card.is-hidden{
-    display:none;
+@media (max-width: 640px) {
+  .login-card {
+    padding: 24px;
+    border-radius: 24px;
+  }
+  .page-shell {
+    padding: 24px 16px 32px;
+  }
 }
 
-.login-card.candidate-card.is-visible{
-    display:block;
+.register-card textarea {
+  border-radius: 14px;
+  border: 1px solid #e4e7ec;
+  padding: 12px 16px;
+  font-size: 15px;
+  min-height: 60px;
+  resize: vertical;
 }
 
-.footer{
-margin-top:20px;
-font-size:12px;
-display:flex;
-justify-content:center;
-gap:15px;
-color:#6B7280;
+.register-card .optional {
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
-.footer a{
-color:#6B7280;
-text-decoration:none;
+.register-card .links {
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.register-note {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #64748b;
+  text-align: center;
+}
+
+.login-card .register-note {
+  color: #5b21b6;
+  font-weight: 600;
 }

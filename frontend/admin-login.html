@@ -11,22 +11,17 @@
 </head>
 <body>
 
-<div class="page">
+<div class="page-shell page-shell--small">
 
-    <!-- HEADER -->
-    <div class="top-header">
+    <div class="hero">
         <div class="logo">
             <i class="fa-solid fa-square-check"></i>
             <span>MFU Election Voting</span>
         </div>
-        <div class="subtitle">
-            University Student Council General Election<br>
-            2024
-        </div>
+        <p class="subtitle">University Student Council General Election 2024</p>
     </div>
 
-    <!-- LOGIN CARD -->
-    <div class="login-card">
+    <div class="login-card login-card--slim">
 
         <div class="verified">
             <i class="fa-solid fa-shield-halved"></i>
@@ -34,12 +29,7 @@
         </div>
 
         <h2>Administrator Access Portal</h2>
-        <p class="desc">Manage the MFU Election System</p>
-
-        <!-- Admin Icon -->
-        <div class="fingerprint-box">
-            <i class="fa-solid fa-user-shield"></i>
-        </div>
+        <p class="desc">Manage the MFU Election System securely.</p>
 
         <form onsubmit="event.preventDefault(); submitAdminLogin();">
 
@@ -50,40 +40,22 @@
             <input id="admin-password" type="password" placeholder="Password" required autocomplete="off" />
 
             <button class="btn">
-                Sign In as Admin
+                Sign In
                 <i class="fa-solid fa-arrow-right"></i>
             </button>
 
+            <div class="alt-actions">
+                <a href="login.html">Voter Login</a>
+                <a href="candidate-login.html">Candidate Login</a>
+                <a href="register-candidate.html">Register Candidate</a>
+            </div>
         </form>
-
-        <!-- Security info -->
-        <div class="security-box">
-            <b>Administrator Access</b>
-            <p>
-            Administrative privileges allow you to manage voters, candidates,
-            and monitor election results. Access is logged and audited.
-        </div>
-
-        <div class="links">
-            <span>Need help?</span>
-            <a href="#">Help Center</a>
-        </div>
-
-        <div class="bottom-links">
-            <a href="login.html">Back to Voter Login</a>
-            •
-            <a href="candidate-login.html">Candidate Login</a>
-        </div>
 
     </div>
 
 </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('year').textContent = new Date().getFullYear();
-    });
-
     async function submitAdminLogin() {
       const username = document.getElementById('admin-username').value.trim();
       const password = document.getElementById('admin-password').value.trim();
@@ -96,6 +68,7 @@
       const response = await fetch('/login/admin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ username, password })
       });
       const result = await response.json();

@@ -3,6 +3,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const path = require('path');
+const bcrypt = require('bcrypt');
 const db = require('./db');
 
 const app = express();
@@ -96,34 +97,43 @@ app.post('/login/candidate', (req,res)=>{
 
 
 // Admin login
-app.post('/login/admin',(req,res)=>{
+app.post('/login/admin', async (req, res) => {
+    const { username, password } = req.body;
 
-    const { username , password } = req.body;
+    if (!username || !password) {
+        return res.json({ success: false, message: 'Username and password required.' });
+    }
 
     const sql = `
     SELECT * FROM admins
-    WHERE username=? AND password=?
+    WHERE username=?
+    LIMIT 1
     `;
 
-    db.query(sql,[username,password],(err,result)=>{
-
-        if(err) return res.json({ success:false });
-
-        if(result.length>0){
-
-            req.session.user={
-                type:'admin',
-                admin_id: result[0].admin_id
-            };
-
-            res.json({ success:true });
-
-        }else{
-            res.json({ success:false });
+    db.query(sql, [username], async (err, result) => {
+        if (err) {
+            console.error('Admin login error', err);
+            return res.json({ success: false, message: 'Login failed.' });
         }
 
-    });
+        if (result.length === 0) {
+            return res.json({ success: false, message: 'Invalid credentials' });
+        }
 
+        const admin = result[0];
+        const match = await bcrypt.compare(password, admin.password);
+
+        if (!match) {
+            return res.json({ success: false, message: 'Invalid credentials' });
+        }
+
+        req.session.user = {
+            type: 'admin',
+            admin_id: admin.admin_id || admin.id
+        };
+
+        res.json({ success: true });
+    });
 });
 
 
