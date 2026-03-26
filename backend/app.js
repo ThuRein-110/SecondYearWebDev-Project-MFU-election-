@@ -576,7 +576,7 @@ app.get('/candidate/dashboard',(req,res)=>{
         const totalVotes = candidates.reduce((sum,row)=>sum + (row.votes ?? 0), 0);
         const sorted = [...candidates].sort((a,b)=> (b.votes ?? 0) - (a.votes ?? 0));
 
-        const leaderboard = sorted.slice(0,5).map((row,index)=>{
+        const leaderboard = sorted.map((row,index)=>{
             const nextVotes = sorted[index + 1]?.votes ?? row.votes ?? 0;
             const trendValue = Math.max(Math.round(((row.votes ?? 0) - nextVotes) / Math.max(row.votes ?? 1, 1) * 100), 0);
             return {
@@ -591,10 +591,46 @@ app.get('/candidate/dashboard',(req,res)=>{
         const rank = sorted.findIndex(c => c.candidate_id === candidateId) + 1;
 
         const hourlyLabels = ['08:00','10:00','12:00','14:00','16:00','18:00','20:00'];
-        const hourly = hourlyLabels.map((label,index)=>{
-            const pct = (index + 1) / hourlyLabels.length;
-            const votes = Math.round((candidate?.votes ?? 0) * pct);
-            return { label, votes };
+        const chartPalette = [
+            '#A855F7',
+            '#F472B6',
+            '#E11D48',
+            '#8B5CF6',
+            '#22C55E',
+            '#4ADE80',
+            '#14B8A6',
+            '#F59E0B',
+            '#84CC16',
+            '#16A34A'
+        ];
+
+        const hourlySeries = sorted.map((row, candidateIndex) => {
+            const finalVotes = Number(row.votes ?? 0);
+            const startVotes = Math.max(0, Math.round(finalVotes * 0.2));
+            const midpointBoost = (candidateIndex % 4) - 1;
+            const points = hourlyLabels.map((label, index) => {
+                const progress = index / Math.max(hourlyLabels.length - 1, 1);
+                let votes = Math.round(startVotes + ((finalVotes - startVotes) * progress));
+                if (index > 0 && index < hourlyLabels.length - 1) {
+                    votes += midpointBoost;
+                }
+                votes = Math.max(0, Math.min(finalVotes, votes));
+                return { label, votes };
+            }).map((point, index, list) => ({
+                ...point,
+                votes: index > 0 ? Math.max(point.votes, list[index - 1].votes) : point.votes
+            }));
+
+            if (points.length) {
+                points[points.length - 1].votes = finalVotes;
+            }
+
+            return {
+                candidateId: row.candidate_id,
+                name: row.name,
+                color: chartPalette[candidateIndex % chartPalette.length],
+                points
+            };
         });
 
         db.query("SELECT COUNT(*) AS total FROM voters WHERE status=1", (err2, voterRows) => {
@@ -619,7 +655,7 @@ app.get('/candidate/dashboard',(req,res)=>{
                 image_url: candidate?.image_url,
                 goalTarget: 60,
                 leaderboard,
-                hourlyPerformance: hourly,
+                hourlyPerformance: hourlySeries,
                 turnoutPercent,
                 recentActivity,
                 candidateId: candidate?.candidate_id

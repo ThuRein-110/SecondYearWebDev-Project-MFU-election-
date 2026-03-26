@@ -6,30 +6,44 @@
     <title>Candidate Dashboard - MFU Election</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="public/css/candidate-dashboard.css">
-    <link rel="stylesheet" href="public/css/responsive.css">
 </head>
 <body>
+    <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebar()"></div>
     <div class="header">
-        <div class="logo">MFU Election</div>
+        <div class="header-brand">
+            <button class="menu-btn" id="menu-btn" type="button" onclick="toggleSidebar()" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="candidate-sidebar">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="logo">MFU Election</div>
+        </div>
         <div class="user-info">
             <span>Welcome, Candidate</span>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
     </div>
     <div class="container">
-        <div class="sidebar">
+        <aside class="sidebar" id="candidate-sidebar">
+            <div class="sidebar-mobile-user">
+                <p class="sidebar-mobile-label">Candidate Workspace</p>
+                <span class="sidebar-mobile-name">Manage your campaign, profile, and live performance.</span>
+            </div>
             <nav>
-                <a href="#" class="nav-item active" onclick="showSection('dashboard')">
+                <a href="#" class="nav-item active" onclick="showSection('dashboard', event)">
                     <span>📊</span> Dashboard
                 </a>
-                <a href="#" class="nav-item" onclick="showSection('profile')">
+                <a href="#" class="nav-item" onclick="showSection('profile', event)">
                     <span>👤</span> Update Profile
                 </a>
-                <a href="#" class="nav-item" onclick="showSection('results')">
-                    <span>📈</span> View Results
+                <a href="#" class="nav-item" onclick="showSection('results', event)">
+                    <span>📈</span> Election Results
                 </a>
             </nav>
-        </div>
+            <div class="sidebar-mobile-actions">
+                <button class="logout-btn sidebar-logout" type="button" onclick="logout()">Logout</button>
+            </div>
+        </aside>
         <div class="main-content">
             <div id="dashboard-section" class="section active">
                 <div class="dashboard-header">
@@ -38,7 +52,6 @@
                         <p>Track your real-time ranking, votes, and voter turnout.</p>
                     </div>
                     <div class="dashboard-actions">
-                        <button class="ghost-btn" onclick="showSection('profile')">Manage Profile</button>
                         <button class="btn-primary" id="refresh-stats">Refresh Stats</button>
                     </div>
                 </div>
@@ -57,11 +70,11 @@
                                 <button class="ghost-btn small">Export</button>
                             </div>
                         </div>
-                        <div class="chart-legend" id="chart-legend">
-                            <span class="legend-line"></span>
-                            <span class="legend-label">Votes</span>
+                        <div class="chart-legend" id="chart-legend"></div>
+                        <div class="chart-stage">
+                            <canvas id="votes-chart"></canvas>
+                            <div class="chart-tooltip" id="chart-tooltip" aria-hidden="true"></div>
                         </div>
-                        <canvas id="votes-chart"></canvas>
                     </div>
                     <div class="candidate-summary-card">
                         <div class="summary-avatar">
@@ -84,49 +97,61 @@
                                 <strong id="dashboard-votes">0</strong>
                             </div>
                         </div>
-                        <button class="ghost-btn">Candidate Statement</button>
+                        <button class="ghost-btn" onclick="showSection('profile')">Update Profile</button>
                     </div>
                 </div>
                 <div class="dashboard-row">
-                    <div class="leaderboard-card">
-                        <div class="card-header">
-                            <h3>Top Candidates</h3>
-                            <a href="#" onclick="showSection('results')">Full Leaderboard →</a>
+                    <div class="leaderboard-card leaderboard-card--featured">
+                        <div class="card-header card-header--split">
+                            <div>
+                                <h3>Top Candidates</h3>
+                                <p>Quick leaderboard snapshot for the current election cycle.</p>
+                            </div>
+                            <div class="leaderboard-actions">
+                                <div class="leaderboard-search">
+                                    <label for="leaderboard-search-input" class="results-search-label">Search voting result</label>
+                                    <input type="search" id="leaderboard-search-input" placeholder="Search candidate name">
+                                </div>
+                                <a href="#" onclick="showSection('results', event)">View Voting Results →</a>
+                            </div>
                         </div>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Rank</th>
-                                    <th>Candidate</th>
-                                    <th>Votes</th>
-                                    <th>Trend</th>
-                                </tr>
-                            </thead>
-                            <tbody id="leaderboard-body"></tbody>
-                        </table>
+                        <div class="leaderboard-table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Candidate</th>
+                                        <th>Votes</th>
+                                        <th>Trend</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leaderboard-body"></tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div class="leaderboard-bars-card">
-                        <div class="card-header">
-                            <h3>Momentum Meter</h3>
-                            <p>Responsive vote share bars for every device.</p>
+                    <div class="dashboard-insights">
+                        <div class="goal-card">
+                            <div class="card-header card-header--compact">
+                                <div>
+                                    <h3>Campaign Progress</h3>
+                                    <p>Next milestone at 60 votes</p>
+                                </div>
+                                <span class="goal-badge">Live</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" id="goal-progress"></div>
+                            </div>
+                            <p id="goal-text">You are just 548 votes away from your milestone.</p>
                         </div>
-                        <div id="leaderboard-bars" class="leaderboard-bars-list">
-                            <!-- bars inserted here -->
+                        <div class="activity-card">
+                            <div class="card-header card-header--compact">
+                                <div>
+                                    <h3>Recent Support Activity</h3>
+                                    <p>Latest campaign movement and ranking updates.</p>
+                                </div>
+                            </div>
+                            <ul id="activity-list"></ul>
                         </div>
-                    </div>
-                    <div class="activity-card">
-                        <div class="card-header">
-                            <h3>Recent Support Activity</h3>
-                        </div>
-                        <ul id="activity-list"></ul>
-                    </div>
-                    <div class="goal-card">
-                        <h3>Campaign Goal</h3>
-                        <p>Target 60 votes</p>
-                        <div class="progress">
-                            <div class="progress-bar" id="goal-progress"></div>
-                        </div>
-                        <p id="goal-text">You are just 548 votes away from your milestone.</p>
                     </div>
                 </div>
             </div>
@@ -171,6 +196,11 @@
                             <div class="summary-avatar">
                                 <img id="candidate-avatar" src="https://via.placeholder.com/140" alt="Candidate photo">
                             </div>
+                            <input type="file" id="profile-image-file" accept="image/*" hidden>
+                            <div class="avatar-actions">
+                                <button class="btn-secondary avatar-trigger" type="button" onclick="openProfileImageFilePicker()">Upload Picture</button>
+                                <button class="ghost-btn avatar-trigger" type="button" onclick="applyProfileImageUrl()">Use Image URL</button>
+                            </div>
                             <div class="summary-name">
                                 <h3 id="profile-name">Candidate Name</h3>
                                 <p id="profile-role">Candidate</p>
@@ -195,8 +225,25 @@
                 </div>
             </div>
             <div id="results-section" class="section">
-                <h1>Election Results</h1>
-                <div class="results-grid" id="results-list"></div>
+                <div class="results-header">
+                    <div>
+                        <h1>Election Results</h1>
+                        <p>Search candidates quickly and review rankings, vote totals, and campaign positioning in one structured list.</p>
+                    </div>
+                    <div class="results-search">
+                        <label for="results-search-input" class="results-search-label">Search candidates</label>
+                        <input type="search" id="results-search-input" placeholder="Search by candidate name or keyword">
+                    </div>
+                </div>
+                <div class="results-list-shell">
+                    <div class="results-list-head">
+                        <span>Rank</span>
+                        <span>Candidate</span>
+                        <span>Campaign Summary</span>
+                        <span>Votes</span>
+                    </div>
+                    <div class="results-list" id="results-list"></div>
+                </div>
             </div>
         </div>
     </div>
