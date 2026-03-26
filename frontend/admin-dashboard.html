@@ -12,7 +12,11 @@
     <header class="top-bar">
         <div class="top-bar-start">
             <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="admin-sidebar">
-                <i class="fa-solid fa-bars"></i>
+                <span class="menu-toggle__icon" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
             </button>
             <div class="logo">MFU Election</div>
         </div>
@@ -66,6 +70,14 @@
                 <a href="#manage" class="nav-item" data-target="manage">
                     <i class="fa-solid fa-users-gear"></i>
                     <span>Manage Users</span>
+                </a>
+                <a href="#voters-list" class="nav-item nav-item--sub" data-target="voters-list">
+                    <i class="fa-solid fa-address-card"></i>
+                    <span>Voter Lists</span>
+                </a>
+                <a href="#candidates-list" class="nav-item nav-item--sub" data-target="candidates-list">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>Candidate Lists</span>
                 </a>
                 <button class="nav-item nav-item--logout" type="button" onclick="logout()">
                     <i class="fa-solid fa-right-from-bracket"></i>
@@ -230,7 +242,7 @@
                     <p>Add, enable, or disable voters and candidates in one view.</p>
                 </div>
                 <div class="tables">
-                    <div class="table-card table-card--voters">
+                    <div id="voters-list" class="table-card table-card--voters">
                         <div class="table-card-head">
                             <h3>Voters</h3>
                             <button class="ghost-btn" onclick="loadVoters()">Refresh</button>
@@ -254,7 +266,7 @@
                             </table>
                         </div>
                     </div>
-                    <div class="table-card table-card--candidates">
+                    <div id="candidates-list" class="table-card table-card--candidates">
                         <div class="table-card-head">
                             <h3>Candidates</h3>
                             <button class="ghost-btn" onclick="loadCandidates()">Refresh</button>

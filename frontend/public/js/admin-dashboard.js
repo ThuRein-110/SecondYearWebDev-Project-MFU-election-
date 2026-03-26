@@ -44,12 +44,16 @@ function scrollToSection(id) {
     }
 }
 
-function isTabletViewport() {
-    return window.innerWidth >= 768 && window.innerWidth <= 1024;
+function isMobileViewport() {
+    return window.innerWidth <= 768;
+}
+
+function isDrawerViewport() {
+    return window.innerWidth <= 1024;
 }
 
 function openSidebarDrawer() {
-    if (!isTabletViewport() || !sidebar) return;
+    if (!isDrawerViewport() || !sidebar) return;
     sidebar.classList.add('is-open');
     document.body.classList.add('drawer-open');
 
@@ -553,12 +557,12 @@ function renderVotersTable(voters) {
 
     votersTable.innerHTML = voters.map(v => `
         <tr>
-            <td>${v.voter_id}</td>
-            <td>${v.citizen_id}</td>
-            <td>${v.laser_id}</td>
-            <td>${v.status ? 'Enabled' : 'Disabled'}</td>
-            <td>${v.has_voted ? 'Yes' : 'No'}</td>
-            <td class="table-actions">
+            <td data-label="ID">${v.voter_id}</td>
+            <td data-label="Citizen ID">${v.citizen_id}</td>
+            <td data-label="Laser ID">${v.laser_id}</td>
+            <td data-label="Status">${v.status ? 'Enabled' : 'Disabled'}</td>
+            <td data-label="Voted">${v.has_voted ? 'Yes' : 'No'}</td>
+            <td data-label="Action" class="table-actions">
                 <button class="btn ${v.status ? 'btn-danger' : 'btn-success'}" onclick="toggleVoter(${v.voter_id}, ${!v.status})">
                     ${v.status ? 'Disable' : 'Enable'}
                 </button>
@@ -610,11 +614,11 @@ function renderCandidatesTable(candidates) {
 
     candidatesTable.innerHTML = candidates.map(c => `
         <tr>
-            <td>${c.candidate_id}</td>
-            <td>${c.name}</td>
-            <td>${c.policy || 'No policy yet'}</td>
-            <td>${c.status ? 'Enabled' : 'Disabled'}</td>
-            <td class="table-actions">
+            <td data-label="ID">${c.candidate_id}</td>
+            <td data-label="Name">${c.name}</td>
+            <td data-label="Policy">${c.policy || 'No policy yet'}</td>
+            <td data-label="Status">${c.status ? 'Enabled' : 'Disabled'}</td>
+            <td data-label="Action" class="table-actions">
                 <button class="btn ${c.status ? 'btn-danger' : 'btn-success'}" onclick="toggleCandidate(${c.candidate_id}, ${!c.status})">
                     ${c.status ? 'Disable' : 'Enable'}
                 </button>
@@ -815,9 +819,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('resize', () => {
-    if (!isTabletViewport()) {
+    if (!isDrawerViewport()) {
         closeSidebarDrawer();
     }
+
+    renderVotersTable(filterVoters());
+    renderCandidatesTable(filterCandidates());
 
     if ((lastVotePerformance.labels || []).length || (lastVotePerformance.series || []).length) {
         drawVotePerformanceChart(lastVotePerformance);
