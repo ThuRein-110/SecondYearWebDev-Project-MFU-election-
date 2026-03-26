@@ -17,8 +17,12 @@
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
     </div>
+    <div class="sidebar-backdrop" onclick="closeSidebar()"></div>
     <div class="container">
         <div class="sidebar">
+            <div class="sidebar-mobile-user">
+                <span>Welcome, Voter</span>
+            </div>
             <nav>
                 <a href="#" class="nav-item active" onclick="showSection('dashboard', event)">
                     <span>📊</span> Dashboard
@@ -30,6 +34,9 @@
                     <span>📋</span> Voting History
                 </a>
             </nav>
+            <div class="sidebar-mobile-actions">
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
         </div>
         <div class="main-content">
 
@@ -47,7 +54,7 @@
                 <b>Election is Open</b>
                 <p>Cast your vote today!</p>
             </div>
-            <button onclick="window.location.href='vote.html'">Vote Now</button>
+            <button onclick="showSection('candidates')">Vote Now</button>
         </div>
     </div>
 
@@ -118,22 +125,29 @@
     <!-- Current standings -->
     <div class="table-section">
         <div class="table-header">
-            <h2>Current Standing Preview</h2>
+            <div class="table-header-title">
+                <h2>Current Standing Preview</h2>
+                <p class="subtitle">Live voting results shown to the right.</p>
+            </div>
+            <input id="dashboard-live-search" class="dashboard-live-search" type="search" placeholder="Search live results by candidate...">
         </div>
 
         <table class="standings-table">
             <thead>
                 <tr>
                     <th>Rank</th>
-                    <th>Candidate & Party</th>
+                    <th>Candidate</th>
+                    <th>Party</th>
                     <th>Position</th>
+                    <th>Policy</th>
+                    <th>Vision</th>
+                    <th>Manifesto</th>
                     <th>Votes</th>
-                    <th>Trend</th>
                 </tr>
             </thead>
-
             <tbody id="standing-table-body"></tbody>
         </table>
+        <div id="standings-mobile-list" class="standings-mobile-list" aria-live="polite"></div>
     </div>
 
     </div>
@@ -193,13 +207,6 @@ placeholder="Search by name, party, or candidate ID..."
             </div>
         </div>
 
-        <div class="history-toolbar">
-            <input id="history-search" type="search" placeholder="Search elections or candidates...">
-            <div class="history-toolbar-actions">
-                <button class="ghost-btn" onclick="exportHistory()">Export CSV</button>
-            </div>
-        </div>
-
         <div class="history-table-wrapper">
             <div class="history-table-header">
                 <div>
@@ -233,13 +240,32 @@ placeholder="Search by name, party, or candidate ID..."
             <div class="live-log-header">
                 <div>
                     <h2>Live Voting Log</h2>
-                    <p class="subtitle">See the most recent ballots submitted by other voters.</p>
+                    <p class="subtitle">See how the top contenders are trending in real time.</p>
                 </div>
-                <button class="ghost-btn small" onclick="loadLiveLog()">Refresh</button>
+                <div class="live-log-search-wrapper">
+                    <input id="live-log-search" type="search" placeholder="Search live results by candidate...">
+                </div>
+                <div class="live-log-actions">
+                    <button class="ghost-btn small" onclick="exportLiveLog()">Export CSV</button>
+                    <button class="ghost-btn small" onclick="loadLiveLog()">Refresh</button>
+                </div>
             </div>
-            <ul id="live-log-list" class="live-log-list">
-                <li class="live-log-entry loading">Loading live activity...</li>
-            </ul>
+            <div class="live-log-table-wrapper">
+                <table class="live-log-table">
+                    <thead>
+                        <tr>
+                            <th>Candidate</th>
+                            <th>Percent</th>
+                            <th>Count</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="live-log-list">
+                        <tr class="live-log-loading-row"><td colspan="4">Loading live activity...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="live-log-mobile-list" class="live-log-mobile-list" aria-live="polite"></div>
         </div>
 
     </div>

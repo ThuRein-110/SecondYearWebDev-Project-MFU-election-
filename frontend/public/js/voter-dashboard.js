@@ -3,10 +3,13 @@ let cachedCandidates = [];
 let historyRecords = [];
 let historySearchInputEl = null;
 let liveLogRecords = [];
+let liveLogSearchInput = null;
+let standingsRecords = [];
 const dashboardErrorEl = document.getElementById('dashboard-error');
 
 const searchInput = document.getElementById('candidate-search');
 const sortSelect = document.getElementById('sort-candidate');
+const dashboardLiveSearchInput = document.getElementById('dashboard-live-search');
 
 if (searchInput) {
     searchInput.addEventListener('input', handleCandidateFilters);
@@ -15,6 +18,16 @@ if (searchInput) {
 if (sortSelect) {
     sortSelect.addEventListener('change', handleCandidateFilters);
 }
+
+dashboardLiveSearchInput?.addEventListener('input', () => {
+    renderStandings(filterStandings());
+});
+
+window.addEventListener('resize', () => {
+    if (window.innerWidth >= 768) {
+        closeSidebar();
+    }
+});
 
 function formatNumber(value) {
     const numeric = Number(value);
@@ -26,8 +39,18 @@ function formatNumber(value) {
 
 function toggleSidebar() {
     sidebarOpen = !sidebarOpen;
-    document.querySelector('.sidebar')
-        .classList.toggle('open', sidebarOpen);
+    const sidebar = document.querySelector('.sidebar');
+    const backdrop = document.querySelector('.sidebar-backdrop');
+    sidebar?.classList.toggle('open', sidebarOpen);
+    backdrop?.classList.toggle('active', sidebarOpen);
+}
+
+function closeSidebar() {
+    if (!sidebarOpen) {
+        return;
+    }
+
+    toggleSidebar();
 }
 
 function showSection(sectionName, event) {
@@ -109,30 +132,102 @@ async function loadStandings() {
     const response = await fetch("/results");
     const standings = await response.json();
     const tbody = document.getElementById("standing-table-body");
+    const mobileList = document.getElementById("standings-mobile-list");
+
+    if (!tbody || !mobileList) {
+        return;
+    }
 
     if (!Array.isArray(standings)) {
         tbody.innerHTML =
             `<tr><td colspan="5">Unable to load standings</td></tr>`;
+        mobileList.innerHTML = `<div class="standings-card">Unable to load standings</div>`;
+        return;
+    }
+
+    standingsRecords = standings;
+    renderStandings(filterStandings());
+}
+
+function filterStandings() {
+    const term = dashboardLiveSearchInput?.value.trim().toLowerCase() || "";
+
+    if (!term) {
+        return standingsRecords;
+    }
+
+    return standingsRecords.filter(candidate => {
+        const label = [
+            candidate.name,
+            candidate.party,
+            candidate.position,
+            candidate.policy,
+            candidate.vision,
+            candidate.manifesto,
+            `CAN-${String(candidate.candidate_id || 0).padStart(3, "0")}`
+        ].join(" ").toLowerCase();
+
+        return label.includes(term);
+    });
+}
+
+function renderStandings(standings) {
+    const tbody = document.getElementById("standing-table-body");
+    const mobileList = document.getElementById("standings-mobile-list");
+
+    if (!tbody || !mobileList) {
+        return;
+    }
+
+    if (!Array.isArray(standings) || !standings.length) {
+        tbody.innerHTML = `<tr><td colspan="8">No standings found</td></tr>`;
+        mobileList.innerHTML = `<div class="standings-card">No standings found</div>`;
         return;
     }
 
     tbody.innerHTML = standings.map((c, index) => {
         const votes = c.votes || 0;
-        const trend = votes > 0 ? "⬆️" : "➖";
 
         return `
         <tr>
             <td>${index + 1}</td>
             <td>
                 <strong>${c.name}</strong><br>
-                <small>${c.party || "Independent"}</small>
+                <small>Candidate ID: CAN-${String(c.candidate_id).padStart(3, "0")}</small>
             </td>
+            <td>${c.party || "Independent"}</td>
             <td>${c.position || "Candidate"}</td>
+            <td>${c.policy || "Policy not available"}</td>
+            <td>${c.vision || "Vision not shared yet"}</td>
+            <td>${c.manifesto || "Manifesto pending"}</td>
             <td>${votes}</td>
-            <td>${trend}</td>
         </tr>
         `;
 
+    }).join("");
+
+    const topVotes = Math.max(...standings.map(candidate => Number(candidate.votes) || 0), 0);
+
+    mobileList.innerHTML = standings.map((candidate, index) => {
+        const votes = Number(candidate.votes) || 0;
+        const progress = topVotes ? Math.max(6, Math.round((votes / topVotes) * 100)) : 0;
+
+        return `
+            <article class="standings-card">
+                <h3>${index + 1}. ${candidate.name || "Unknown Candidate"}</h3>
+                <div class="meta">
+                    <span>${candidate.party || "Independent"}</span>
+                    <span>${candidate.position || "Candidate"}</span>
+                    <span>CAN-${String(candidate.candidate_id || 0).padStart(3, "0")}</span>
+                </div>
+                <div class="progress">
+                    <span style="width: ${progress}%"></span>
+                </div>
+                <div class="meta">
+                    <span><strong>${votes}</strong> votes</span>
+                </div>
+            </article>
+        `;
     }).join("");
 }
 
@@ -425,39 +520,111 @@ async function loadLiveLog(limit = 6) {
         }
     });
     liveLogRecords = Object.values(unique).sort((a,b)=> (b.sharePercent ?? 0)-(a.sharePercent ?? 0));
+    renderLiveLog(filterLiveLogRecords(liveLogSearchInput?.value || ""));
+}
 
-    renderLiveLog(liveLogRecords);
+function filterLiveLogRecords(term = "") {
+    const normalized = (term || "").trim().toLowerCase();
+    if (!normalized) return liveLogRecords;
+    return liveLogRecords.filter(entry => {
+        const label = [
+            entry.name,
+            entry.party,
+            `CAN-${String(entry.candidate_id || 0).padStart(3, "0")}`
+        ].join(" ").toLowerCase();
+        return label.includes(normalized);
+    });
+}
+
+function getCandidateById(id) {
+    if (!id || !Array.isArray(cachedCandidates)) return null;
+    return cachedCandidates.find(candidate => String(candidate.candidate_id) === String(id));
 }
 
 function renderLiveLog(entries) {
     const list = document.getElementById("live-log-list");
-    if (!list) return;
+    const mobileList = document.getElementById("live-log-mobile-list");
+    if (!list || !mobileList) return;
     if (!entries.length) {
-        list.innerHTML = `<li class="live-log-entry loading">Waiting for more ballots to arrive.</li>`;
+        list.innerHTML = `<tr class="live-log-entry loading"><td colspan="4">Waiting for more ballots to arrive.</td></tr>`;
+        mobileList.innerHTML = `<div class="live-log-mobile-empty">Waiting for more ballots to arrive.</div>`;
         return;
     }
 
-    list.innerHTML = entries.map(entry => {
+    const limited = entries.slice(0, 5);
+
+    list.innerHTML = limited.map(entry => {
         const timeLabel = formatTimestamp(entry.vote_time);
-        const candidateLabel = `${entry.name || "Unknown Candidate"} · ${entry.party || "Independent"}`;
+        const candidate = getCandidateById(entry.candidate_id);
+        const candidateLabel = `${candidate?.name || entry.name || "Unknown Candidate"} · ${candidate?.party || entry.party || "Independent"}`;
         const share = entry.sharePercent ?? 0;
         const shareLabel = entry.sharePercent ? `${entry.sharePercent}%` : "0%";
         const colorClass = shareToColor(entry.sharePercent || 0);
         const candidateIdLabel = `CAN-${String(entry.candidate_id || 0).padStart(3, '0')}`;
+        const avatarUrl = resolveCandidateImage({ ...entry, image_url: candidate?.image_url });
+        const positionLabel = entry.position || candidate?.position || "Candidate";
         return `
-            <li class="live-log-entry">
-                <div>
-                    <strong>${candidateLabel}</strong>
-                    <span>${entry.position || "Candidate"} · ${candidateIdLabel}</span>
-                </div>
-                <div class="live-log-progress">
-                    <span class="live-log-progress-fill ${colorClass}" style="width:${share}%"></span>
-                </div>
-                <div class="live-log-meta">
+            <tr class="live-log-entry">
+                <td class="live-log-candidate">
+                    <img src="${avatarUrl}" alt="${candidateLabel}">
+                    <div>
+                        <strong>${candidateLabel}</strong>
+                        <span>${positionLabel} · ${candidateIdLabel}</span>
+                    </div>
+                </td>
+                <td class="live-log-percent">
+                    <div class="live-log-progress">
+                        <span class="live-log-progress-fill ${colorClass}" style="width:${share}%"></span>
+                    </div>
+                    <div class="live-log-meta">
+                        <span class="live-share ${colorClass}">${shareLabel}</span>
+                    </div>
+                </td>
+                <td class="live-log-count">
+                    <span>${entry.candidate_votes ?? 0}</span>
+                </td>
+                <td class="live-log-action">
+                    <button class="profile-link" onclick="viewProfile(${entry.candidate_id || 0})">View Profile</button>
+                    <small>${timeLabel}</small>
+                </td>
+            </tr>
+        `;
+    }).join("");
+
+    mobileList.innerHTML = limited.map(entry => {
+        const timeLabel = formatTimestamp(entry.vote_time);
+        const candidate = getCandidateById(entry.candidate_id);
+        const candidateLabel = candidate?.name || entry.name || "Unknown Candidate";
+        const partyLabel = candidate?.party || entry.party || "Independent";
+        const share = entry.sharePercent ?? 0;
+        const shareLabel = entry.sharePercent ? `${entry.sharePercent}%` : "0%";
+        const colorClass = shareToColor(entry.sharePercent || 0);
+        const candidateIdLabel = `CAN-${String(entry.candidate_id || 0).padStart(3, "0")}`;
+        const avatarUrl = resolveCandidateImage({ ...entry, image_url: candidate?.image_url });
+        const positionLabel = entry.position || candidate?.position || "Candidate";
+
+        return `
+            <article class="live-log-mobile-card">
+                <div class="live-log-mobile-top">
+                    <img src="${avatarUrl}" alt="${candidateLabel}">
+                    <div class="live-log-mobile-summary">
+                        <h3>${candidateLabel}</h3>
+                        <p>${partyLabel}</p>
+                        <span>${positionLabel} · ${candidateIdLabel}</span>
+                    </div>
                     <span class="live-share ${colorClass}">${shareLabel}</span>
-                    <span>${timeLabel}</span>
                 </div>
-            </li>
+                <div class="live-log-mobile-stats">
+                    <div class="live-log-progress">
+                        <span class="live-log-progress-fill ${colorClass}" style="width:${share}%"></span>
+                    </div>
+                    <div class="live-log-mobile-meta">
+                        <strong>${entry.candidate_votes ?? 0} votes</strong>
+                        <small>${timeLabel}</small>
+                    </div>
+                </div>
+                <button class="profile-link live-log-mobile-btn" onclick="viewProfile(${entry.candidate_id || 0})">View Profile</button>
+            </article>
         `;
     }).join("");
 }
@@ -501,6 +668,37 @@ function exportHistory() {
     const link = document.createElement("a");
     link.href = url;
     link.download = `mfu-voting-history-${Date.now()}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+function exportLiveLog() {
+    if (!liveLogRecords.length) {
+        alert("No live data to export yet.");
+        return;
+    }
+
+    const header = ["Candidate", "Party", "Position", "Share (%)", "Votes", "Timestamp"];
+    const rows = liveLogRecords.map(entry => [
+        entry.name,
+        entry.party || "Independent",
+        entry.position || "Candidate",
+        entry.sharePercent ?? 0,
+        entry.candidate_votes ?? 0,
+        formatTimestamp(entry.vote_time)
+    ]);
+
+    const csvContent = [header, ...rows]
+        .map(row => row.map(cell => `"${(cell ?? "").toString().replace(/"/g, '""')}"`).join(","))
+        .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `mfu-live-voting-log-${Date.now()}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -551,7 +749,14 @@ async function logout() {
 document.addEventListener("DOMContentLoaded", () => {
     loadDashboard();
     loadCandidates();
+    dashboardLiveSearchInput?.addEventListener('input', () => {
+        renderStandings(filterStandings());
+    });
     historySearchInputEl = document.getElementById('history-search');
+    liveLogSearchInput = document.getElementById('live-log-search');
+    liveLogSearchInput?.addEventListener('input', () => {
+        renderLiveLog(filterLiveLogRecords(liveLogSearchInput.value));
+    });
     if (historySearchInputEl) {
         historySearchInputEl.addEventListener('input', () => {
             renderHistoryTable(historySearchInputEl.value);

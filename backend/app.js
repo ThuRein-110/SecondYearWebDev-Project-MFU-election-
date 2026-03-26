@@ -192,6 +192,8 @@ app.get('/results',(req,res)=>{
     c.party,
     c.position,
     c.policy,
+    c.vision,
+    c.manifesto,
     c.image_url,
     COUNT(v.vote_id) AS votes
     FROM candidates c

@@ -65,3 +65,415 @@ textarea {
     align-items: stretch;
   }
 }
+
+body {
+  overflow-x: hidden;
+}
+
+.sidebar {
+  position: fixed;
+  top: 60px;
+  left: -260px;
+  width: 260px;
+  height: calc(100vh - 60px);
+  background: #fff;
+  border-right: 1px solid #e5e7eb;
+  transition: transform 0.3s ease;
+  transform: translateX(-260px);
+  z-index: 1000;
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  z-index: 900;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-backdrop.active {
+  display: block;
+  opacity: 1;
+}
+
+.menu-btn {
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+@media (min-width: 768px) {
+  .sidebar {
+    transform: translateX(0);
+    left: 0;
+    width: 240px;
+    height: calc(100vh - 60px);
+  }
+
+  .sidebar-backdrop {
+    display: none !important;
+  }
+
+  .menu-btn {
+    display: none;
+  }
+
+  .sidebar-mobile-user {
+    display: none;
+  }
+
+  .sidebar-mobile-actions {
+    display: none;
+  }
+}
+
+.standings-mobile-list {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .standings-table {
+    display: none;
+  }
+
+  .standings-mobile-list {
+    display: block;
+  }
+
+  .standings-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+    margin-bottom: 16px;
+  }
+
+  .standings-card h3 {
+    margin-bottom: 8px;
+  }
+
+  .standings-card .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 14px;
+    color: #475467;
+  }
+
+  .standings-card .progress {
+    height: 6px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    margin: 12px 0;
+    overflow: hidden;
+  }
+
+  .standings-card .progress span {
+    display: block;
+    height: 100%;
+    background: #3b82f6;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .container {
+    overflow-x: hidden;
+  }
+
+  .main-content,
+  .main {
+    width: calc(100vw - 240px);
+    max-width: calc(100vw - 240px);
+    min-width: 0;
+    padding: 20px;
+  }
+
+  .stats-grid,
+  .quick-actions,
+  .candidates-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .table-section,
+  .history-table-wrapper,
+  .live-log-card,
+  .table-wrapper,
+  .live-log-table-wrapper {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .history-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .standings-table {
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 767px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 240px;
+    padding: 24px 0;
+    border-bottom: none;
+  }
+
+  .main-content,
+  .main {
+    margin-left: 0;
+    padding: 1.25rem;
+  }
+
+  .header {
+    padding: 0.75rem 1rem;
+  }
+
+  .sidebar nav {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1rem;
+  }
+
+  .quick-actions {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .header .menu-btn {
+    display: inline-flex;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .main-content,
+  .main {
+    padding: 0.85rem;
+  }
+
+  .stats-grid,
+  .quick-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .table-section,
+  .live-log-wrapper,
+  .history-table-wrapper {
+    padding: 1rem;
+  }
+
+  .dashboard-live-search,
+  .history-toolbar input,
+  .candidate-toolbar input,
+  .candidate-toolbar select,
+  .history-toolbar-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  body {
+    font-size: 14px;
+  }
+
+  .header,
+  .main-content,
+  .table-section {
+    padding: 0.75rem;
+  }
+
+  .action-card button,
+  .stat-card,
+  .live-log-card,
+  .history-card {
+    border-radius: 12px;
+  }
+
+  .history-table tbody tr {
+    border-radius: 16px;
+    padding: 1rem;
+  }
+}
+
+body,
+.page-shell {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+@media (max-width: 767px) {
+  .page-shell {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 240px;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 24px 0;
+  }
+
+  .sidebar nav {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .main {
+    width: 100%;
+    padding: 1rem;
+  }
+
+  .overview-cards,
+  .insight-row,
+  .manage {
+    width: 100%;
+  }
+
+  .search-row,
+  .table-wrapper {
+    width: 100%;
+  }
+
+  .header .logo {
+    flex: 1;
+  }
+
+  .header .user-info {
+    display: none;
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
+
+  .sidebar-mobile-user {
+    display: flex;
+    align-items: flex-start;
+    padding: 20px 24px 12px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f8fafc;
+  }
+
+  .sidebar-mobile-user span {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  .sidebar-mobile-actions {
+    padding: 12px 24px 20px;
+  }
+
+  .sidebar-mobile-actions .logout-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 767px) {
+  .sidebar {
+    display: block;
+    left: 0;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .top-bar {
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .new-nav-mob {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .card,
+  .table-wrapper,
+  .log-card {
+    border-radius: calc(var(--card-radius) - 4px);
+  }
+
+  .data-table,
+  .live-log-list,
+  .results-grid {
+    width: 100%;
+  }
+
+  input[type="search"],
+  .search-field,
+  .btn,
+  .action-bar button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --layout-gap: 0.75rem;
+    --card-radius: 12px;
+  }
+
+  .main,
+  .hero,
+  .manage,
+  .logs,
+  .row-card {
+    padding: 0.75rem;
+  }
+
+  .overview-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .search-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .live-log-card {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .live-log-card img {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+  }
+
+  .action-bar {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
