@@ -12,6 +12,9 @@ const chartCanvas = document.getElementById('turnout-chart');
 const chartLegend = document.getElementById('chart-legend');
 const chartTooltip = document.getElementById('chart-tooltip');
 const closeButton = document.querySelector('.primary');
+const menuToggle = document.getElementById('menu-toggle');
+const sidebar = document.getElementById('admin-sidebar');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
 
 const chartPalette = ['#a855f7', '#ec4899', '#e11d48', '#8b5cf6', '#22c55e', '#4ade80', '#14b8a6', '#3b82f6'];
 let chartState = null;
@@ -25,6 +28,7 @@ navItems.forEach(link => {
         event.preventDefault();
         setActiveNav(link);
         scrollToSection(link.dataset.target);
+        closeSidebarDrawer();
     });
 });
 
@@ -37,6 +41,40 @@ function scrollToSection(id) {
     const target = document.getElementById(id);
     if (target) {
         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+function isTabletViewport() {
+    return window.innerWidth >= 768 && window.innerWidth <= 1024;
+}
+
+function openSidebarDrawer() {
+    if (!isTabletViewport() || !sidebar) return;
+    sidebar.classList.add('is-open');
+    document.body.classList.add('drawer-open');
+
+    if (sidebarOverlay) {
+        sidebarOverlay.classList.add('is-visible');
+        sidebarOverlay.setAttribute('aria-hidden', 'false');
+    }
+
+    if (menuToggle) {
+        menuToggle.setAttribute('aria-expanded', 'true');
+    }
+}
+
+function closeSidebarDrawer() {
+    if (!sidebar) return;
+    sidebar.classList.remove('is-open');
+    document.body.classList.remove('drawer-open');
+
+    if (sidebarOverlay) {
+        sidebarOverlay.classList.remove('is-visible');
+        sidebarOverlay.setAttribute('aria-hidden', 'true');
+    }
+
+    if (menuToggle) {
+        menuToggle.setAttribute('aria-expanded', 'false');
     }
 }
 
@@ -753,6 +791,20 @@ document.addEventListener('DOMContentLoaded', () => {
         registerCandidateForm.addEventListener('submit', registerCandidate);
     }
 
+    if (menuToggle) {
+        menuToggle.addEventListener('click', () => {
+            if (sidebar?.classList.contains('is-open')) {
+                closeSidebarDrawer();
+            } else {
+                openSidebarDrawer();
+            }
+        });
+    }
+
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', closeSidebarDrawer);
+    }
+
     if (chartCanvas) {
         chartCanvas.addEventListener('mousemove', handleChartHover);
         chartCanvas.addEventListener('mouseleave', clearChartHover);
@@ -763,7 +815,17 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('resize', () => {
+    if (!isTabletViewport()) {
+        closeSidebarDrawer();
+    }
+
     if ((lastVotePerformance.labels || []).length || (lastVotePerformance.series || []).length) {
         drawVotePerformanceChart(lastVotePerformance);
+    }
+});
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+        closeSidebarDrawer();
     }
 });

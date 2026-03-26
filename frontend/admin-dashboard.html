@@ -10,24 +10,40 @@
 </head>
 <body>
     <header class="top-bar">
-        <div class="logo">MFU Election</div>
-        <div class="user-brand">
-            <div class="user-details">
-                <span class="label">Election Committee Admin</span>
-                <strong>admin</strong>
+        <div class="top-bar-start">
+            <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="admin-sidebar">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="logo">MFU Election</div>
+        </div>
+        <div class="top-bar-end">
+            <button class="profile-chip" type="button" aria-label="Admin profile">
+                <span class="profile-chip__icon">
+                    <i class="fa-solid fa-user-shield"></i>
+                </span>
+                <span class="profile-chip__label">admin</span>
+            </button>
+            <div class="user-brand">
+                <div class="user-details">
+                    <span class="label">Election Committee Admin</span>
+                    <strong>admin</strong>
+                </div>
+                <button class="logout-btn" onclick="logout()">Logout</button>
             </div>
-            <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
     </header>
+    <div class="sidebar-overlay" id="sidebar-overlay" aria-hidden="true"></div>
     <div class="page-shell">
-        <aside class="sidebar">
-            <div class="brand">
-                <div class="brand-mark">
-                    <i class="fa-solid fa-shield-halved"></i>
-                </div>
-                <div class="brand-copy">
-                    <span>MFU Election</span>
-                    <small>Admin control center</small>
+        <aside class="sidebar" id="admin-sidebar">
+            <div class="sidebar-head">
+                <div class="brand">
+                    <div class="brand-mark">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div class="brand-copy">
+                        <span>MFU Election</span>
+                        <small>Admin control center</small>
+                    </div>
                 </div>
             </div>
             <nav>
@@ -51,6 +67,10 @@
                     <i class="fa-solid fa-users-gear"></i>
                     <span>Manage Users</span>
                 </a>
+                <button class="nav-item nav-item--logout" type="button" onclick="logout()">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </button>
             </nav>
             <div class="help-note">
                 Need help?<br>
@@ -210,7 +230,7 @@
                     <p>Add, enable, or disable voters and candidates in one view.</p>
                 </div>
                 <div class="tables">
-                    <div class="table-card">
+                    <div class="table-card table-card--voters">
                         <div class="table-card-head">
                             <h3>Voters</h3>
                             <button class="ghost-btn" onclick="loadVoters()">Refresh</button>
@@ -234,7 +254,7 @@
                             </table>
                         </div>
                     </div>
-                    <div class="table-card">
+                    <div class="table-card table-card--candidates">
                         <div class="table-card-head">
                             <h3>Candidates</h3>
                             <button class="ghost-btn" onclick="loadCandidates()">Refresh</button>

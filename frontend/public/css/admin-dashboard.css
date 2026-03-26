@@ -15,6 +15,10 @@ body {
     color: #1f2937;
 }
 
+body.drawer-open {
+    overflow: hidden;
+}
+
 .top-bar {
     height: 68px;
     background: #ffffff;
@@ -28,6 +32,35 @@ body {
     z-index: 10;
 }
 
+.top-bar-start,
+.top-bar-end {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.menu-toggle,
+.profile-chip {
+    border: 1px solid #dbe5f1;
+    background: #ffffff;
+    color: #1f2937;
+    cursor: pointer;
+}
+
+.menu-toggle {
+    display: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.menu-toggle i {
+    font-size: 16px;
+}
+
 .logo {
     font-weight: 700;
     font-size: 20px;
@@ -38,6 +71,33 @@ body {
     display: flex;
     align-items: center;
     gap: 16px;
+}
+
+.profile-chip {
+    display: none;
+    min-height: 44px;
+    padding: 0 12px 0 10px;
+    border-radius: 14px;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.profile-chip__icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    color: #2563eb;
+    font-size: 13px;
+}
+
+.profile-chip__label {
+    font-size: 13px;
+    color: #1f2937;
 }
 
 .user-details {
@@ -67,6 +127,22 @@ body {
     min-height: calc(100vh - 68px);
 }
 
+.sidebar-overlay {
+    position: fixed;
+    inset: 68px 0 0;
+    background: rgba(15, 23, 42, 0.28);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.24s ease;
+    z-index: 11;
+}
+
+.sidebar-overlay.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 .sidebar {
     width: 260px;
     background: #ffffff;
@@ -80,6 +156,13 @@ body {
     height: calc(100vh - 68px);
     overflow-y: auto;
     align-self: flex-start;
+}
+
+.sidebar-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
 }
 
 .brand {
@@ -166,6 +249,19 @@ body {
     border-radius: 16px;
     background: #f8fafc;
     border: 1px solid #e5e7eb;
+}
+
+.nav-item--logout {
+    width: 100%;
+    border: 1px solid rgba(239, 68, 68, 0.18);
+    background: rgba(254, 242, 242, 0.9);
+    color: #dc2626;
+    text-align: left;
+    font: inherit;
+}
+
+.nav-item--logout i {
+    color: #dc2626;
 }
 
 .main {
@@ -826,78 +922,70 @@ th {
     padding: 26px 12px;
 }
 
-@media (min-width: 768px) and (max-width: 1180px) {
+@media (max-width: 1024px) and (min-width: 768px) {
     .top-bar {
-        padding: 0 24px;
+        height: 72px;
+        padding: 0 20px;
     }
 
-    .logo {
-        font-size: 18px;
+    .menu-toggle,
+    .profile-chip,
+    .sidebar-close,
+    .sidebar-logout {
+        display: inline-flex;
     }
 
-    .user-brand {
+    .top-bar-start,
+    .top-bar-end {
         gap: 12px;
     }
 
-    .logout-btn {
-        padding: 10px 18px;
+    .logo {
+        font-size: 19px;
+    }
+
+    .user-brand {
+        display: none;
     }
 
     .page-shell {
-        align-items: flex-start;
+        display: block;
+        min-height: calc(100vh - 72px);
+    }
+
+    .sidebar-overlay {
+        inset: 72px 0 0;
     }
 
     .sidebar {
-        width: 216px;
-        min-width: 216px;
-        padding: 22px 16px 20px;
-        gap: 20px;
+        position: fixed;
+        top: 72px;
+        left: 0;
+        width: min(320px, 82vw);
+        min-width: 0;
+        height: calc(100vh - 72px);
+        padding: 20px 18px 18px;
+        border-right: 1px solid #e5e7eb;
+        box-shadow: 26px 0 60px rgba(15, 23, 42, 0.18);
+        transform: translateX(calc(-100% - 24px));
+        transition: transform 0.28s ease;
+        z-index: 12;
     }
 
-    .brand {
-        gap: 10px;
-        padding: 4px 4px 0;
-    }
-
-    .brand-mark {
-        width: 38px;
-        height: 38px;
-        border-radius: 12px;
-        font-size: 16px;
-    }
-
-    .brand-copy span {
-        font-size: 15px;
-    }
-
-    .brand-copy small {
-        font-size: 11px;
-    }
-
-    .nav-item {
-        padding: 12px 12px;
-        gap: 10px;
-        font-size: 14px;
-    }
-
-    .nav-item i {
-        width: 16px;
-        font-size: 13px;
-    }
-
-    .help-note {
-        padding: 14px;
-        font-size: 12px;
+    .sidebar.is-open {
+        transform: translateX(0);
     }
 
     .main {
-        padding: 24px;
-        gap: 24px;
+        padding: 20px;
+        max-width: 100%;
+        gap: 20px;
     }
 
     .overview-headline {
         align-items: flex-start;
         flex-wrap: wrap;
+        gap: 14px;
     }
 
     .overview-headline h1 {
@@ -905,12 +993,21 @@ th {
     }
 
     .overview-headline p {
-        max-width: 620px;
+        max-width: 640px;
+        margin-top: 8px;
         font-size: 15px;
     }
 
+    .primary,
+    .ghost-btn,
+    .lead-profile-btn,
+    .table-actions button,
+    .action-card span {
+        min-height: 44px;
+    }
+
     .overview-cards {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 16px;
     }
 
@@ -923,41 +1020,40 @@ th {
     }
 
     .insight-row {
-        grid-template-columns: 1fr;
-        gap: 24px;
+        grid-template-columns: 1.18fr 0.82fr;
+        gap: 20px;
+        align-items: stretch;
     }
 
     .chart-card,
     .lead-card,
     .actions,
     .manage {
+        padding: 22px;
         border-radius: 20px;
-        padding: 24px;
     }
 
-    .chart-header,
-    .lead-card .card-header {
+    .chart-header {
         flex-direction: column;
         align-items: stretch;
         gap: 14px;
     }
 
     .chart-actions {
-        justify-content: flex-start;
+        gap: 10px;
         flex-wrap: wrap;
     }
 
     .chart-legend {
-        gap: 12px 20px;
+        gap: 10px 18px;
         margin: 18px 0 12px;
     }
 
-    .legend-item {
-        font-size: 12px;
-    }
-
-    .chart-card canvas {
-        height: 240px;
+    .lead-card .card-header {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        align-items: stretch;
+        gap: 12px;
     }
 
     .lead-search {
@@ -968,12 +1064,32 @@ th {
 
     .lead-table-head,
     .lead-item {
-        grid-template-columns: minmax(180px, 1.2fr) minmax(120px, 0.9fr) minmax(120px, 0.8fr) minmax(110px, 0.7fr);
-        gap: 12px;
+        grid-template-columns: minmax(150px, 1.2fr) minmax(92px, 0.85fr) minmax(96px, 0.72fr) minmax(100px, 0.75fr);
+        gap: 10px;
+    }
+
+    .lead-table-head {
+        font-size: 12px;
+    }
+
+    .lead-candidate strong,
+    .lead-party span,
+    .lead-votes span {
+        font-size: 13px;
+    }
+
+    .lead-profile-btn {
+        width: 100%;
+        padding: 0 10px;
+        font-size: 12px;
+    }
+
+    .chart-card canvas {
+        height: 236px;
     }
 
     .lead-list-scroll {
-        max-height: 320px;
+        max-height: 312px;
     }
 
     .action-grid {
@@ -988,6 +1104,7 @@ th {
 
     .inline-form {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
     }
 
     .inline-form > .ghost-btn {
@@ -1007,8 +1124,53 @@ th {
         padding: 16px;
     }
 
+    .table-card-head h3,
+    .section-head h2,
+    .card-header h3 {
+        font-size: 20px;
+    }
+
+    .table-wrap {
+        -webkit-overflow-scrolling: touch;
+    }
+
     .table-wrap--scroll {
         max-height: 360px;
+    }
+
+    th,
+    td {
+        font-size: 12px;
+        padding: 10px 7px;
+        white-space: nowrap;
+    }
+
+    td:nth-child(3),
+    th:nth-child(3) {
+        white-space: normal;
+    }
+}
+
+@media (min-width: 900px) and (max-width: 1024px) {
+    .main {
+        padding: 22px 24px;
+    }
+
+    .overview-cards {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .insight-row {
+        grid-template-columns: 1fr;
+    }
+
+    .lead-card .card-header {
+        grid-template-columns: minmax(0, 1fr) 280px;
+        gap: 18px;
+    }
+
+    .action-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
@@ -1054,6 +1216,560 @@ th {
 
     .table-card {
         padding: 14px;
+    }
+}
+
+@media (max-width: 1024px) and (min-width: 768px) {
+    html,
+    body {
+       /* overflow-x: hidden;*/
+    }
+
+    body.drawer-open {
+        overflow: hidden;
+    }
+
+    .top-bar {
+        height: 64px;
+        padding: 0 14px;
+        overflow: hidden;
+    }
+
+    .top-bar-start,
+    .top-bar-end {
+        gap: 10px;
+    }
+
+    .menu-toggle {
+        display: inline-flex;
+    }
+
+    .user-brand,
+    .profile-chip {
+        display: none;
+    }
+
+    .menu-toggle {
+        width: 38px;
+        height: 38px;
+        border-radius: 9px;
+    }
+
+    .menu-toggle__icon {
+        font-size: 15px;
+    }
+
+    .logo {
+        font-size: 16px;
+        white-space: nowrap;
+    }
+
+    .page-shell {
+        display: block;
+        min-height: calc(100vh - 64px);
+        overflow-x: hidden;
+    }
+
+    .sidebar-overlay {
+        inset: 64px 0 0;
+    }
+
+    .sidebar {
+        position: fixed;
+        top: 64px;
+        left: 0;
+        width: min(260px, 80vw);
+        min-width: 0;
+        height: calc(100vh - 64px);
+        padding: 16px 14px 14px;
+        gap: 16px;
+        border-right: 1px solid #e5e7eb;
+        box-shadow: 24px 0 54px rgba(15, 23, 42, 0.18);
+        transform: translateX(calc(-100% - 20px));
+        transition: transform 0.26s ease;
+        z-index: 12;
+    }
+
+    .sidebar.is-open {
+        transform: translateX(0);
+    }
+
+    .sidebar-head {
+        display: flex;
+    }
+
+    .brand {
+        gap: 10px;
+        padding: 0;
+    }
+
+    .brand-mark {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        font-size: 14px;
+    }
+
+    .brand-copy span {
+        font-size: 14px;
+    }
+
+    .brand-copy small {
+        font-size: 10px;
+    }
+
+    .nav-item {
+        padding: 10px 11px;
+        gap: 9px;
+        border-radius: 11px;
+        font-size: 12px;
+    }
+
+    .nav-item i {
+        width: 14px;
+        font-size: 11px;
+    }
+
+    .help-note {
+        margin-top: 0;
+        padding: 11px;
+        font-size: 11px;
+        border-radius: 12px;
+    }
+
+    .main {
+        padding: 14px;
+        gap: 14px;
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .overview-headline {
+        gap: 10px;
+    }
+
+    .overview-headline h1 {
+        font-size: 22px;
+    }
+
+    .overview-headline p {
+        margin-top: 4px;
+        font-size: 12px;
+    }
+
+    .primary {
+        min-height: 36px;
+        padding: 9px 14px;
+        border-radius: 9px;
+        font-size: 12px;
+    }
+
+    .overview-cards {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        width: 100%;
+    }
+
+    .card {
+        padding: 14px;
+        border-radius: 14px;
+    }
+
+    .card h4 {
+        font-size: 10px;
+    }
+
+    .card strong {
+        margin-top: 8px;
+        font-size: 19px;
+    }
+
+    .card span {
+        font-size: 11px;
+    }
+
+    .insight-row {
+        grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.95fr);
+        gap: 14px;
+        width: 100%;
+    }
+
+    .chart-card,
+    .lead-card,
+    .actions,
+    .manage {
+        padding: 16px;
+        border-radius: 16px;
+        min-width: 0;
+        width: 100%;
+    }
+
+    .card-header h3,
+    .section-head h2,
+    .table-card-head h3 {
+        font-size: 16px;
+    }
+
+    .card-header span,
+    .section-head p {
+        font-size: 12px;
+    }
+
+    .chart-header {
+        gap: 10px;
+    }
+
+    .chart-actions {
+        gap: 6px;
+    }
+
+    .ghost-btn {
+        min-height: 34px;
+        padding: 6px 10px;
+        border-radius: 9px;
+        font-size: 11px;
+    }
+
+    .chart-legend {
+        gap: 6px 12px;
+        margin: 12px 0 8px;
+    }
+
+    .legend-item {
+        gap: 6px;
+        font-size: 11px;
+    }
+
+    .legend-swatch,
+    .legend-line {
+        width: 12px;
+    }
+
+    .chart-card canvas {
+        height: 188px;
+    }
+
+    .lead-card .card-header {
+        margin-bottom: 10px;
+    }
+
+    .lead-search {
+        min-width: 0;
+        margin-top: 0;
+    }
+
+    .lead-search input,
+    .table-search input,
+    .form-field input {
+        min-height: 36px;
+        padding: 0 10px;
+        border-radius: 9px;
+        font-size: 12px;
+    }
+
+    .form-field textarea {
+        min-height: 84px;
+        padding: 9px 10px;
+        border-radius: 9px;
+        font-size: 12px;
+    }
+
+    .lead-table-head,
+    .lead-item {
+        grid-template-columns: minmax(0, 1.2fr) minmax(82px, 0.72fr) minmax(72px, 0.56fr) minmax(88px, 0.62fr);
+        gap: 6px;
+        width: 100%;
+    }
+
+    .lead-table-head {
+        margin-top: 8px;
+        padding: 10px 0 8px;
+        font-size: 10px;
+    }
+
+    .lead-item {
+        padding: 10px 0;
+    }
+
+    .lead-candidate strong,
+    .lead-party span,
+    .lead-votes span {
+        font-size: 11px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .lead-profile-btn {
+        min-height: 30px;
+        padding: 0 8px;
+        font-size: 10px;
+        width: 100%;
+    }
+
+    .lead-list-scroll {
+        max-height: 272px;
+        padding-right: 6px;
+    }
+
+    .action-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+        width: 100%;
+    }
+
+    .action-card {
+        min-height: 142px;
+        padding: 14px;
+        gap: 12px;
+        border-radius: 11px;
+        font-size: 12px;
+    }
+
+    .action-card strong {
+        font-size: 14px;
+    }
+
+    .action-card span {
+        min-height: 34px;
+        padding: 0 12px;
+        border-radius: 9px;
+        font-size: 11px;
+    }
+
+    .inline-form {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+        gap: 12px;
+        width: 100%;
+    }
+
+    .candidate-form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+    }
+
+    .tables {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        width: 100%;
+    }
+
+    .table-card {
+        padding: 12px;
+        border-radius: 13px;
+        min-width: 0;
+        width: 100%;
+    }
+
+    .table-wrap {
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+    }
+
+    .table-wrap--scroll {
+        max-height: 286px;
+        overflow-x: auto;
+    }
+
+    table {
+        min-width: 560px;
+        width: max-content;
+        table-layout: auto;
+    }
+
+    th,
+    td {
+        padding: 8px 5px;
+        font-size: 11px;
+        white-space: nowrap;
+        overflow-wrap: normal;
+        word-break: normal;
+    }
+
+    .table-actions button {
+        min-height: 30px;
+        padding: 5px 8px;
+        font-size: 10px;
+        border-radius: 8px;
+    }
+
+    .logout-btn,
+    .profile-chip,
+    .user-brand {
+        display: none !important;
+    }
+}
+
+@media (max-width: 900px) and (min-width: 768px) {
+    .insight-row {
+        grid-template-columns: 1fr;
+    }
+
+    .lead-card {
+        width: 100%;
+    }
+
+    .lead-card .card-header {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(220px, 0.72fr);
+        gap: 12px;
+        align-items: end;
+    }
+
+    .lead-search {
+        width: 100%;
+    }
+
+    .lead-table-head,
+    .lead-item {
+        grid-template-columns: minmax(180px, 1.25fr) minmax(110px, 0.8fr) minmax(96px, 0.72fr) minmax(112px, 0.76fr);
+        gap: 10px;
+    }
+
+    .lead-table-head {
+        font-size: 11px;
+    }
+
+    .lead-candidate strong,
+    .lead-party span,
+    .lead-votes span {
+        font-size: 12px;
+    }
+
+    .lead-profile-btn {
+        min-height: 34px;
+        font-size: 11px;
+    }
+
+    .lead-list-scroll {
+        max-height: 304px;
+    }
+
+    .lead-bar {
+        max-width: 100%;
+    }
+
+    .tables {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .table-card {
+        padding: 14px;
+    }
+
+    .table-card-head {
+        align-items: center;
+    }
+
+    .table-search input {
+        min-height: 38px;
+        font-size: 12px;
+    }
+
+    .table-wrap--scroll {
+        max-height: 320px;
+    }
+
+    table {
+        min-width: 620px;
+    }
+
+    th,
+    td {
+        font-size: 12px;
+        padding: 9px 6px;
+    }
+
+    .table-actions button {
+        min-height: 32px;
+        font-size: 11px;
+    }
+
+    .table-card--voters {
+        padding: 16px;
+        border-radius: 16px;
+        background: #fbfcff;
+    }
+
+    .table-card--voters .table-card-head {
+        margin-bottom: 2px;
+    }
+
+    .table-card--voters .table-card-head h3 {
+        font-size: 18px;
+    }
+
+    .table-card--voters .table-search input {
+        min-height: 44px;
+        border-radius: 14px;
+        padding: 0 14px;
+        font-size: 13px;
+    }
+
+    .table-card--voters .table-wrap--scroll {
+        max-height: 340px;
+        border-top: 1px solid #e8eef8;
+        border-bottom: 1px solid #e8eef8;
+        border-radius: 14px;
+        background: #ffffff;
+        overflow-x: hidden;
+    }
+
+    .table-card--voters table {
+        min-width: 100%;
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    .table-card--voters th,
+    .table-card--voters td {
+        padding: 11px 8px;
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .table-card--voters th {
+        background: #ffffff;
+    }
+
+    .table-card--voters th:nth-child(1),
+    .table-card--voters td:nth-child(1) {
+        width: 56px;
+    }
+
+    .table-card--voters th:nth-child(2),
+    .table-card--voters td:nth-child(2) {
+        width: 108px;
+    }
+
+    .table-card--voters th:nth-child(3),
+    .table-card--voters td:nth-child(3) {
+        width: 118px;
+    }
+
+    .table-card--voters th:nth-child(4),
+    .table-card--voters td:nth-child(4),
+    .table-card--voters th:nth-child(5),
+    .table-card--voters td:nth-child(5) {
+        width: 72px;
+    }
+
+    .table-card--voters th:nth-child(6),
+    .table-card--voters td:nth-child(6) {
+        width: 92px;
+    }
+
+    .table-card--voters .table-actions button {
+        min-height: 36px;
+        width: 100%;
+        padding: 6px 10px;
+        font-size: 11px;
+        border-radius: 10px;
     }
 }
 
