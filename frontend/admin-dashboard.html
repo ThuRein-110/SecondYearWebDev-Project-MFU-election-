@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="public/css/admin-dashboard.css">
-    <link rel="stylesheet" href="public/css/responsive.css">
 </head>
 <body>
     <header class="top-bar">
@@ -23,12 +22,35 @@
     <div class="page-shell">
         <aside class="sidebar">
             <div class="brand">
-                <i class="fa-solid fa-square-check"></i>
-                <span>MFU Election</span>
+                <div class="brand-mark">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="brand-copy">
+                    <span>MFU Election</span>
+                    <small>Admin control center</small>
+                </div>
             </div>
             <nav>
-                <a href="#overview" class="nav-item active" data-target="overview">Admin Overview</a>
-                <a href="#manage" class="nav-item" data-target="manage">Manage Users</a>
+                <a href="#overview" class="nav-item active" data-target="overview">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Admin Overview</span>
+                </a>
+                <a href="#actions" class="nav-item" data-target="actions">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Actions</span>
+                </a>
+                <a href="#register-voter" class="nav-item" data-target="register-voter">
+                    <i class="fa-solid fa-id-card"></i>
+                    <span>Register Voter</span>
+                </a>
+                <a href="#register-candidate" class="nav-item" data-target="register-candidate">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>Register Candidate</span>
+                </a>
+                <a href="#manage" class="nav-item" data-target="manage">
+                    <i class="fa-solid fa-users-gear"></i>
+                    <span>Manage Users</span>
+                </a>
             </nav>
             <div class="help-note">
                 Need help?<br>
@@ -49,24 +71,44 @@
                 </div>
                 <div class="insight-row">
                     <div class="chart-card">
-                        <div class="card-header">
-                            <h3>Voter Turnout Velocity</h3>
-                            <span>Cumulative votes cast throughout the polling window.</span>
+                        <div class="chart-header">
+                            <div class="card-header">
+                                <h3>Voting Performance</h3>
+                                <span>Cumulative vote count based on recorded ballot timestamps.</span>
+                            </div>
+                            <div class="chart-actions">
+                                <button class="ghost-btn" type="button">Today</button>
+                                <button class="ghost-btn" type="button" onclick="exportResults()">Export</button>
+                            </div>
                         </div>
-                        <canvas id="turnout-chart" width="600" height="220"></canvas>
+                        <div class="chart-legend" id="chart-legend"></div>
+                        <div class="chart-stage">
+                            <canvas id="turnout-chart"></canvas>
+                            <div class="chart-tooltip" id="chart-tooltip" aria-hidden="true"></div>
+                        </div>
                     </div>
                     <div class="lead-card">
                         <div class="card-header">
-                            <h3>Lead Standings</h3>
-                            <span>Top candidates by total votes.</span>
+                            <div>
+                                <h3>Lead Standings</h3>
+                                <span>Top candidates by total votes.</span>
+                            </div>
+                            <div class="lead-search">
+                                <input type="search" id="lead-search-input" placeholder="Search voting result">
+                            </div>
                         </div>
-                        <div id="lead-list"></div>
-                        <a class="link" href="#">View Full Results Table</a>
+                        <div class="lead-table-head">
+                            <span>Candidate</span>
+                            <span>Party</span>
+                            <span>Votes</span>
+                            <span>Action</span>
+                        </div>
+                        <div class="lead-list-scroll" id="lead-list"></div>
                     </div>
                 </div>
             </section>
 
-            <section class="actions" aria-label="Administrative Actions">
+            <section id="actions" class="actions" aria-label="Administrative Actions">
                 <div class="section-head">
                     <h2>Administrative Actions</h2>
                 </div>
@@ -85,24 +127,81 @@
                         </div>
                         <span>Download Reports →</span>
                     </button>
-                    <button class="action-card">
+                    <button class="action-card" onclick="document.getElementById('register-voter-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' })">
                         <div>
-                            <strong>Verify Participants</strong>
-                            <p>Approve pending candidate registrations and verify citizen identities.</p>
+                            <strong>Register Voter</strong>
+                            <p>Create a new voter account with Citizen ID and Laser ID while keeping default voting status values.</p>
                         </div>
-                        <span>Verification Queue →</span>
+                        <span>Open Registration →</span>
+                    </button>
+                    <button class="action-card" onclick="document.getElementById('register-candidate-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' })">
+                        <div>
+                            <strong>Register Candidate</strong>
+                            <p>Create a candidate account with campaign details, login email, and profile information from the admin dashboard.</p>
+                        </div>
+                        <span>Open Candidate Form →</span>
                     </button>
                 </div>
             </section>
 
-            <section class="events" aria-label="Recent System Events">
+            <section id="register-voter" class="manage register-panel" aria-label="Register Voter">
                 <div class="section-head">
-                    <h2>Recent System Events</h2>
+                    <h2>Register Voter</h2>
+                    <p>Create a voter account using only Citizen ID and Laser ID. New voter accounts start disabled and not yet voted.</p>
                 </div>
-                <ul id="event-list"></ul>
-                <div class="view-log">
-                    <button onclick="scrollToSection('overview')">View Full Audit Log</button>
+                <form class="inline-form inline-form--standalone" id="register-voter-form">
+                    <div class="form-field">
+                        <label for="new-citizen-id">Citizen ID</label>
+                        <input type="text" id="new-citizen-id" name="citizen_id" placeholder="Enter citizen ID" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="new-laser-id">Laser ID</label>
+                        <input type="text" id="new-laser-id" name="laser_id" placeholder="Enter laser ID" required>
+                    </div>
+                    <button class="ghost-btn" type="submit">Register Voter</button>
+                </form>
+            </section>
+
+            <section id="register-candidate" class="manage register-panel" aria-label="Register Candidate">
+                <div class="section-head">
+                    <h2>Register Candidate</h2>
+                    <p>Create a candidate profile directly from the admin dashboard using campaign details, candidate login credentials, and optional profile content. New candidate accounts start disabled.</p>
                 </div>
+                <form class="inline-form inline-form--standalone candidate-form-grid" id="register-candidate-form">
+                    <div class="form-field">
+                        <label for="candidate-name">Full Name</label>
+                        <input type="text" id="candidate-name" name="name" placeholder="Candidate name" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="candidate-email">Email</label>
+                        <input type="email" id="candidate-email" name="email" placeholder="name@institution.edu" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="candidate-party">Party / Club</label>
+                        <input type="text" id="candidate-party" name="party" placeholder="Student Voice" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="candidate-position">Position</label>
+                        <input type="text" id="candidate-position" name="position" placeholder="President / Representative" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="candidate-password">Desired Password</label>
+                        <input type="password" id="candidate-password" name="password" placeholder="Create a secure password" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="candidate-image-url">Profile Image URL <span class="label-optional">(optional)</span></label>
+                        <input type="url" id="candidate-image-url" name="image_url" placeholder="https://example.com/photo.jpg">
+                    </div>
+                    <div class="form-field form-field--full">
+                        <label for="candidate-vision">Vision Statement <span class="label-optional">(optional)</span></label>
+                        <textarea id="candidate-vision" name="vision" rows="3" placeholder="A short vision for the campaign"></textarea>
+                    </div>
+                    <div class="form-field form-field--full">
+                        <label for="candidate-manifesto">Manifesto <span class="label-optional">(optional)</span></label>
+                        <textarea id="candidate-manifesto" name="manifesto" rows="4" placeholder="Highlight the top priorities"></textarea>
+                    </div>
+                    <button class="ghost-btn" type="submit">Register Candidate</button>
+                </form>
             </section>
 
             <section id="manage" class="manage" aria-label="Manage Users">
@@ -116,7 +215,10 @@
                             <h3>Voters</h3>
                             <button class="ghost-btn" onclick="loadVoters()">Refresh</button>
                         </div>
-                        <div class="table-wrap">
+                        <div class="table-search">
+                            <input type="search" id="voters-search-input" placeholder="Search voter by ID, citizen ID, laser ID, or status">
+                        </div>
+                        <div class="table-wrap table-wrap--scroll">
                             <table>
                                 <thead>
                                     <tr>
@@ -137,7 +239,10 @@
                             <h3>Candidates</h3>
                             <button class="ghost-btn" onclick="loadCandidates()">Refresh</button>
                         </div>
-                        <div class="table-wrap">
+                        <div class="table-search">
+                            <input type="search" id="candidates-search-input" placeholder="Search candidate by ID, name, policy, or status">
+                        </div>
+                        <div class="table-wrap table-wrap--scroll">
                             <table>
                                 <thead>
                                     <tr>

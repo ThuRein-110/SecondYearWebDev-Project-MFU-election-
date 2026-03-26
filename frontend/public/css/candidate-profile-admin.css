@@ -1,0 +1,54 @@
+.admin-sidebar {
+    align-self: start;
+}
+
+.admin-panel {
+    gap: 18px;
+}
+
+.admin-meta-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.admin-meta-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: #f8fafc;
+}
+
+.admin-meta-item span {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.admin-meta-item strong {
+    color: var(--text);
+    font-size: 14px;
+}
+
+.admin-return-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 48px;
+    border-radius: 14px;
+    border: 1px solid rgba(37, 99, 235, 0.28);
+    background: #ffffff;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 700;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-return-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(37, 99, 235, 0.12);
+}

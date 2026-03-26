@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Candidate Profile - MFU Election</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="public/css/candidate-profile.css">
+    <link rel="stylesheet" href="public/css/candidate-profile-admin.css">
+</head>
+<body>
+    <div class="page-wrapper">
+        <header class="page-header">
+            <a class="back-link" href="admin-dashboard.html#overview">
+                <span aria-hidden="true">←</span>
+                <span>Back to Lead Standings</span>
+            </a>
+            <div class="header-meta">
+                <span class="status-chip">Candidate Snapshot</span>
+                <span class="status-chip secondary" id="candidate-status-chip">Status Unknown</span>
+            </div>
+        </header>
+        <div class="profile-grid">
+            <section class="profile-section">
+                <div class="profile-banner">
+                    <img id="profile-img" alt="Candidate portrait">
+                    <div class="profile-details">
+                        <div class="profile-badges">
+                            <span class="badge" id="candidate-id"></span>
+                            <span class="party-chip" id="party"></span>
+                        </div>
+                        <div class="name-row">
+                            <h1 id="name"></h1>
+                            <span class="position-chip" id="position"></span>
+                        </div>
+                        <p class="tagline" id="tagline"></p>
+                        <p class="policy-summary" id="policy-summary"></p>
+                    </div>
+                </div>
+                <div class="content-grid">
+                    <div class="info-card">
+                        <h3>Vision</h3>
+                        <p id="vision"></p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Manifesto</h3>
+                        <p id="manifesto"></p>
+                    </div>
+                </div>
+                <div class="info-card pillars-card">
+                    <h3>Core Pillars</h3>
+                    <div id="pillars" class="pillars"></div>
+                </div>
+            </section>
+            <aside class="vote-section admin-sidebar">
+                <div class="vote-panel admin-panel">
+                    <h3>Admin Candidate View</h3>
+                    <p class="vote-subtitle">Review candidate details without leaving the admin workflow.</p>
+                    <div class="vote-box">
+                        <p>Current standing</p>
+                        <h2 id="votes">0 Votes</h2>
+                        <small id="ranking-text">Committee review panel</small>
+                    </div>
+                    <div class="admin-meta-list">
+                        <div class="admin-meta-item">
+                            <span>Status</span>
+                            <strong id="candidate-status-text">Unknown</strong>
+                        </div>
+                        <div class="admin-meta-item">
+                            <span>Party</span>
+                            <strong id="candidate-party-text">Independent</strong>
+                        </div>
+                        <div class="admin-meta-item">
+                            <span>Position</span>
+                            <strong id="candidate-position-text">Candidate</strong>
+                        </div>
+                    </div>
+                    <p id="admin-status" class="vote-status" aria-live="polite"></p>
+                </div>
+            </aside>
+        </div>
+    </div>
+    <script src="public/js/candidate-profile-admin.js"></script>
+</body>
+</html>

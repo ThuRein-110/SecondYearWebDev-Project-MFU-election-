@@ -424,6 +424,10 @@ app.post('/admin/toggle-voter',(req,res)=>{
 });
 
 app.post('/admin/register-voter', (req, res) => {
+    if (!req.session.user || req.session.user.type !== 'admin') {
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
     const { citizen_id, laser_id } = req.body;
 
     if (!citizen_id || !laser_id) {
@@ -431,13 +435,81 @@ app.post('/admin/register-voter', (req, res) => {
     }
 
     db.query(
-        'INSERT INTO voters (citizen_id, laser_id, status) VALUES (?, ?, 1)',
+        'INSERT INTO voters (citizen_id, laser_id, status, has_voted) VALUES (?, ?, 0, 0)',
         [citizen_id, laser_id],
         (err) => {
             if (err) {
                 console.error('Failed to register voter', err);
+                if (err.code === 'ER_DUP_ENTRY') {
+                    return res.status(409).json({ success: false, message: 'This citizen ID already exists.' });
+                }
                 return res.status(500).json({ success: false, message: 'Unable to register voter.' });
             }
+            res.json({ success: true });
+        }
+    );
+});
+
+app.post('/admin/register-candidate', (req, res) => {
+    if (!req.session.user || req.session.user.type !== 'admin') {
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const {
+        name,
+        email,
+        party,
+        position,
+        password,
+        image_url,
+        vision,
+        manifesto
+    } = req.body;
+
+    if (!name || !email || !party || !position || !password) {
+        return res.status(400).json({
+            success: false,
+            message: 'Name, email, party, position, and password are required.'
+        });
+    }
+
+    const normalizedVision = vision ? String(vision).trim() : null;
+    const normalizedManifesto = manifesto ? String(manifesto).trim() : null;
+    const normalizedPolicy = normalizedVision || normalizedManifesto || null;
+
+    db.query(
+        `
+            INSERT INTO candidates (
+                name, party, position, policy, image_url, email, password, status, vision, manifesto
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+        `,
+        [
+            String(name).trim(),
+            String(party).trim(),
+            String(position).trim(),
+            normalizedPolicy,
+            image_url ? String(image_url).trim() : null,
+            String(email).trim(),
+            String(password),
+            normalizedVision,
+            normalizedManifesto
+        ],
+        (err) => {
+            if (err) {
+                console.error('Failed to register candidate', err);
+                if (err.code === 'ER_DUP_ENTRY') {
+                    return res.status(409).json({
+                        success: false,
+                        message: 'This candidate email already exists.'
+                    });
+                }
+
+                return res.status(500).json({
+                    success: false,
+                    message: 'Unable to register candidate.'
+                });
+            }
+
             res.json({ success: true });
         }
     );
@@ -458,6 +530,157 @@ app.get('/admin/candidates',(req,res)=>{
         }
     );
 
+});
+
+app.get('/admin/candidates/:id/detail', (req, res) => {
+
+    if (!req.session.user || req.session.user.type !== 'admin') {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const candidateId = req.params.id;
+    const sql = `
+        SELECT
+            c.candidate_id,
+            c.name,
+            c.party,
+            c.position,
+            c.policy,
+            c.vision,
+            c.manifesto,
+            c.image_url,
+            c.status,
+            COUNT(v.vote_id) AS votes
+        FROM candidates c
+        LEFT JOIN votes v ON v.candidate_id = c.candidate_id
+        WHERE c.candidate_id = ?
+        GROUP BY
+            c.candidate_id,
+            c.name,
+            c.party,
+            c.position,
+            c.policy,
+            c.vision,
+            c.manifesto,
+            c.image_url,
+            c.status
+        LIMIT 1
+    `;
+
+    db.query(sql, [candidateId], (err, rows) => {
+        if (err) {
+            console.error('Failed to load admin candidate detail', err);
+            return res.status(500).json({ error: 'Unable to load candidate detail' });
+        }
+
+        if (!rows.length) {
+            return res.status(404).json({ error: 'Candidate not found' });
+        }
+
+        res.json(rows[0]);
+    });
+});
+
+app.get('/admin/vote-performance', (req, res) => {
+
+    if (!req.session.user || req.session.user.type !== 'admin') {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const candidateSql = `
+        SELECT candidate_id, name, status
+        FROM candidates
+        ORDER BY candidate_id
+    `;
+
+    db.query(candidateSql, (candidateErr, candidates) => {
+        if (candidateErr) {
+            console.error('Failed to load candidates for vote performance', candidateErr);
+            return res.status(500).json({ error: 'Unable to load vote performance' });
+        }
+
+        const voteSql = `
+            SELECT v.vote_id, v.candidate_id, v.vote_time, c.name
+            FROM votes v
+            JOIN candidates c ON c.candidate_id = v.candidate_id
+            ORDER BY v.vote_time ASC, v.vote_id ASC
+        `;
+
+        db.query(voteSql, (voteErr, votes) => {
+            if (voteErr) {
+                console.error('Failed to load votes for vote performance', voteErr);
+                return res.status(500).json({ error: 'Unable to load vote performance' });
+            }
+
+            const timestamps = [];
+            const timestampMap = new Map();
+            const runningTotals = new Map();
+            const seriesMap = new Map();
+
+            (candidates || []).forEach(candidate => {
+                runningTotals.set(candidate.candidate_id, 0);
+                seriesMap.set(candidate.candidate_id, []);
+            });
+
+            (votes || []).forEach(vote => {
+                const timestampValue = vote.vote_time instanceof Date
+                    ? vote.vote_time.toISOString()
+                    : new Date(vote.vote_time).toISOString();
+
+                if (!timestampMap.has(timestampValue)) {
+                    timestamps.push(timestampValue);
+                    timestampMap.set(timestampValue, timestamps.length - 1);
+
+                    (candidates || []).forEach(candidate => {
+                        const candidateSeries = seriesMap.get(candidate.candidate_id) || [];
+                        candidateSeries.push(runningTotals.get(candidate.candidate_id) || 0);
+                        seriesMap.set(candidate.candidate_id, candidateSeries);
+                    });
+                }
+
+                const timestampIndex = timestampMap.get(timestampValue);
+                const nextValue = (runningTotals.get(vote.candidate_id) || 0) + 1;
+                runningTotals.set(vote.candidate_id, nextValue);
+
+                const candidateSeries = seriesMap.get(vote.candidate_id) || [];
+                candidateSeries[timestampIndex] = nextValue;
+                seriesMap.set(vote.candidate_id, candidateSeries);
+
+                (candidates || []).forEach(candidate => {
+                    const currentSeries = seriesMap.get(candidate.candidate_id) || [];
+                    if (currentSeries.length < timestamps.length) {
+                        currentSeries.push(runningTotals.get(candidate.candidate_id) || 0);
+                        seriesMap.set(candidate.candidate_id, currentSeries);
+                    }
+                });
+            });
+
+            const fallbackTimestamps = timestamps.length
+                ? timestamps
+                : ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'].map(label => {
+                    const now = new Date();
+                    const [hours, minutes] = label.split(':').map(Number);
+                    now.setHours(hours, minutes, 0, 0);
+                    return now.toISOString();
+                });
+
+            const series = (candidates || []).map(candidate => {
+                const candidateSeries = seriesMap.get(candidate.candidate_id) || [];
+                const paddedSeries = fallbackTimestamps.map((_, index) => candidateSeries[index] || 0);
+                return {
+                    candidate_id: candidate.candidate_id,
+                    name: candidate.name,
+                    status: candidate.status,
+                    values: paddedSeries
+                };
+            });
+
+            res.json({
+                labels: fallbackTimestamps,
+                series
+            });
+        });
+    });
 });
 
 
@@ -501,6 +724,71 @@ app.post('/admin/toggle-voting',(req,res)=>{
 
 
 /* -------------------- CANDIDATE UPDATE -------------------- */
+
+app.post('/candidate/register', (req, res) => {
+    const {
+        name,
+        email,
+        party,
+        position,
+        password,
+        image_url,
+        vision,
+        manifesto
+    } = req.body;
+
+    if (!name || !email || !party || !position || !password) {
+        return res.status(400).json({
+            success: false,
+            message: 'Name, email, party, position, and password are required.'
+        });
+    }
+
+    const normalizedVision = vision ? String(vision).trim() : null;
+    const normalizedManifesto = manifesto ? String(manifesto).trim() : null;
+    const normalizedPolicy = normalizedVision || normalizedManifesto || null;
+
+    db.query(
+        `
+            INSERT INTO candidates (
+                name, party, position, policy, image_url, email, password, status, vision, manifesto
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+        `,
+        [
+            String(name).trim(),
+            String(party).trim(),
+            String(position).trim(),
+            normalizedPolicy,
+            image_url ? String(image_url).trim() : null,
+            String(email).trim(),
+            String(password),
+            normalizedVision,
+            normalizedManifesto
+        ],
+        (err) => {
+            if (err) {
+                console.error('Failed to submit candidate registration', err);
+
+                if (err.code === 'ER_DUP_ENTRY') {
+                    return res.status(409).json({
+                        success: false,
+                        message: 'This email is already registered for a candidate account.'
+                    });
+                }
+
+                return res.status(500).json({
+                    success: false,
+                    message: 'Unable to submit request right now.'
+                });
+            }
+
+            res.json({
+                success: true,
+                message: 'Candidate request submitted successfully.'
+            });
+        }
+    );
+});
 
 app.post('/candidate/update',(req,res)=>{
 
