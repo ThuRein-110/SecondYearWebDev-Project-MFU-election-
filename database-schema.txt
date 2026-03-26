@@ -1,135 +1,187 @@
--- MFU Election Database Schema & Seed Data
--- Run as part of backend/setup.js or manually via mysql client
+-- MFU Election full database snapshot
+-- Paste this whole file into XAMPP / phpMyAdmin / SQL tab.
+--
+-- Notes:
+-- 1. This script follows the phpMyAdmin screenshots for the database shape and data snapshot.
+-- 2. Your current credentials.txt voter demo row (6731501123 / GY2884227) does not match the screenshot snapshot.
+--    To keep the SQL consistent with the screenshots, this file seeds 53 voters from 6731501000 to 6731501052.
+-- 3. Candidate 7 exists in the screenshot but not in credentials.txt, so its password here is an assumed demo password:
+--    GoWithFlow!26
+-- 4. Password fields and voter laser_id are stored as bcrypt hashes, so the hash values are valid but may not exactly
+--    match a separately generated local database because bcrypt uses random salt.
 
-CREATE DATABASE IF NOT EXISTS mfu_election;
-USE mfu_election;
+DROP DATABASE IF EXISTS `mfu_election`;
+CREATE DATABASE `mfu_election`
+  DEFAULT CHARACTER SET utf8mb4
+  DEFAULT COLLATE utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS voters (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    citizen_id VARCHAR(20) UNIQUE NOT NULL,
-    laser_id VARCHAR(20) NOT NULL,
-    status TINYINT DEFAULT 1,
-    has_voted TINYINT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+USE `mfu_election`;
 
-CREATE TABLE IF NOT EXISTS candidates (
-    candidate_id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    party VARCHAR(100),
-    position VARCHAR(100),
-    policy TEXT,
-    image_url TEXT,
-    email VARCHAR(255) UNIQUE,
-    password VARCHAR(255),
-    status TINYINT DEFAULT 1,
-    vision TEXT,
-    manifesto TEXT,
-    votes INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+SET NAMES utf8mb4;
+SET time_zone = '+07:00';
 
-CREATE TABLE IF NOT EXISTS votes (
-    vote_id INT AUTO_INCREMENT PRIMARY KEY,
-    voter_id INT NOT NULL,
-    candidate_id INT NOT NULL,
-    vote_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (voter_id) REFERENCES voters(id),
-    FOREIGN KEY (candidate_id) REFERENCES candidates(candidate_id)
-);
+CREATE TABLE `admins` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `username` VARCHAR(50) NOT NULL,
+  `password` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_admins_username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS admins (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL
-);
+CREATE TABLE `candidates` (
+  `candidate_id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(100) NOT NULL,
+  `party` VARCHAR(100) DEFAULT NULL,
+  `position` VARCHAR(100) DEFAULT NULL,
+  `policy` TEXT,
+  `image_url` TEXT,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `email` VARCHAR(255) DEFAULT NULL,
+  `password` VARCHAR(255) DEFAULT NULL,
+  `status` TINYINT DEFAULT 1,
+  `vision` TEXT,
+  `manifesto` TEXT,
+  `votes` INT DEFAULT 0,
+  PRIMARY KEY (`candidate_id`),
+  UNIQUE KEY `uq_candidates_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS settings (
-    id INT PRIMARY KEY DEFAULT 1,
-    voting_enabled TINYINT DEFAULT 1
-);
+CREATE TABLE `settings` (
+  `id` INT NOT NULL DEFAULT 1,
+  `voting_enabled` TINYINT DEFAULT 1,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Seed values (adjust as needed)
-INSERT INTO admins (username, password) VALUES ('admin','admin123')
-    ON DUPLICATE KEY UPDATE password=VALUES(password);
-INSERT INTO settings (id,voting_enabled) VALUES (1,1)
-    ON DUPLICATE KEY UPDATE voting_enabled=VALUES(voting_enabled);
+CREATE TABLE `voters` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `citizen_id` VARCHAR(20) NOT NULL,
+  `laser_id` VARCHAR(255) NOT NULL,
+  `status` TINYINT DEFAULT 1,
+  `has_voted` TINYINT DEFAULT 0,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_voters_citizen_id` (`citizen_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- 52 voter seeds
-INSERT INTO voters (citizen_id, laser_id, status, has_voted)
-VALUES
-(6731501000,'GY22884000',1,0),
-(6731501001,'GY22884001',1,0),
-(6731501002,'GY22884002',1,0),
-(6731501003,'GY22884003',1,0),
-(6731501004,'GY22884004',1,0),
-(6731501005,'GY22884005',1,0),
-(6731501006,'GY22884006',1,0),
-(6731501007,'GY22884007',1,0),
-(6731501008,'GY22884008',1,0),
-(6731501009,'GY22884009',1,0),
-(6731501010,'GY22884010',1,0),
-(6731501011,'GY22884011',1,0),
-(6731501012,'GY22884012',1,0),
-(6731501013,'GY22884013',1,0),
-(6731501014,'GY22884014',1,0),
-(6731501015,'GY22884015',1,0),
-(6731501016,'GY22884016',1,0),
-(6731501017,'GY22884017',1,0),
-(6731501018,'GY22884018',1,0),
-(6731501019,'GY22884019',1,0),
-(6731501020,'GY22884020',1,0),
-(6731501021,'GY22884021',1,0),
-(6731501022,'GY22884022',1,0),
-(6731501023,'GY22884023',1,0),
-(6731501024,'GY22884024',1,0),
-(6731501025,'GY22884025',1,0),
-(6731501026,'GY22884026',1,0),
-(6731501027,'GY22884027',1,0),
-(6731501028,'GY22884028',1,0),
-(6731501029,'GY22884029',1,0),
-(6731501030,'GY22884030',1,0),
-(6731501031,'GY22884031',1,0),
-(6731501032,'GY22884032',1,0),
-(6731501033,'GY22884033',1,0),
-(6731501034,'GY22884034',1,0),
-(6731501035,'GY22884035',1,0),
-(6731501036,'GY22884036',1,0),
-(6731501037,'GY22884037',1,0),
-(6731501038,'GY22884038',1,0),
-(6731501039,'GY22884039',1,0),
-(6731501040,'GY22884040',1,0),
-(6731501041,'GY22884041',1,0),
-(6731501042,'GY22884042',1,0),
-(6731501043,'GY22884043',1,0),
-(6731501044,'GY22884044',1,0),
-(6731501045,'GY22884045',1,0),
-(6731501046,'GY22884046',1,0),
-(6731501047,'GY22884047',1,0),
-(6731501048,'GY22884048',1,0),
-(6731501049,'GY22884049',1,0),
-(6731501050,'GY22884050',1,0),
-(6731501051,'GY22884051',1,0)
-ON DUPLICATE KEY UPDATE laser_id=VALUES(laser_id);
+CREATE TABLE `votes` (
+  `vote_id` INT NOT NULL AUTO_INCREMENT,
+  `voter_id` INT NOT NULL,
+  `candidate_id` INT NOT NULL,
+  `vote_time` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`vote_id`),
+  KEY `idx_votes_voter_id` (`voter_id`),
+  KEY `idx_votes_candidate_id` (`candidate_id`),
+  CONSTRAINT `fk_votes_voter` FOREIGN KEY (`voter_id`) REFERENCES `voters` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_votes_candidate` FOREIGN KEY (`candidate_id`) REFERENCES `candidates` (`candidate_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Candidates
-INSERT INTO candidates (candidate_id,name,party,position,policy,image_url,email,password,status,vision,manifesto,votes)
-VALUES
-(1,'Mr. Thitipong Siri','Bright Horizon','President','Expand digital learning studios and partner labs with industry leaders.','https://randomuser.me/api/portraits/men/21.jpg','thitipong@mfu.ac.th','SiriSecure!26',1,'A future-first MFU that embraces emerging technologies and inclusive learning.','Create accessible co-creation spaces where students and faculty can prototype future-ready projects together.',1),
-(2,'Ms. Anya Raksak','Student Voice','President','Ensure student council seats reflect every faculty and program.','https://randomuser.me/api/portraits/women/44.jpg','anya@mfu.ac.th','VoicePulse$26',1,'Every student is represented and empowered with transparent dialogue and support.','Host monthly town halls with clear follow-up tracking and democratize council budgets.',0),
-(3,'Dr. Somchai Wang','Innovation MFU','President','Improve digital services with AI-assisted assistants for campus services.','https://randomuser.me/api/portraits/men/32.jpg','somchai@mfu.ac.th','InnovateEdge#26',1,'An innovative MFU leading regional education through collaborative AI research.','Launch an innovation hub where interdisciplinary teams co-create human-centered digital tools.',0),
-(4,'Dr. Sirin Phayap','Innovation MFU','President','Improve student digital services','https://randomuser.me/api/portraits/men/44.jpg','sirin@mfu.ac.th','DigitalPioneer@26',1,'My candidacy is built on the belief that a university should champion digital equity.','Deploy hands-on labs and learning pods so every student masters the AI-enabled workplace.',0),
-(5,'Ms. Piyawan Raksak','Student Voice','President','Better student representation','https://randomuser.me/api/portraits/women/65.jpg','piyawan@mfu.ac.th','CommunityFirst%26',1,'A compassionate campus community centered on wellbeing, trust, and inclusion.','Fund peer counselling, expand wellness programs, and open transparent budget channels.',0),
-(6,'Mr. Thanat P.','Green Future','President','Making MFU a sustainable university','https://randomuser.me/api/portraits/men/65.jpg','thanat@mfu.ac.th','GreenFuture#26',1,'A campus that honours nature and student wellbeing every day.','Implement campus-wide zero-waste initiatives and rewild shared learning spaces.',0)
-ON DUPLICATE KEY UPDATE
-    name=VALUES(name),
-    party=VALUES(party),
-    position=VALUES(position),
-    policy=VALUES(policy),
-    image_url=VALUES(image_url),
-    email=VALUES(email),
-    password=VALUES(password),
-    status=VALUES(status),
-    vision=VALUES(vision),
-    manifesto=VALUES(manifesto),
-    votes=VALUES(votes);
+START TRANSACTION;
+
+INSERT INTO `admins` (`id`, `username`, `password`) VALUES
+(1, 'admin', '$2b$10$COVtgbLtxIxnq8jnzAgVieb2So9mQvvpOMriFFP76IRYFFwqe2/yO');
+
+INSERT INTO `settings` (`id`, `voting_enabled`) VALUES
+(1, 1);
+
+INSERT INTO `voters` (`id`, `citizen_id`, `laser_id`, `status`, `has_voted`) VALUES
+(1, '6731501000', '$2b$10$ZOsLstKwuBexiO1OzClYGuYYLCCKBA6NeBwmBtmjt7/uwi4zQ59Lu', 1, 0),
+(2, '6731501001', '$2b$10$pRDcOBuSbxw6XMu7bse.uu4s6iHjCoVpNViMDqVajty1miYOOhCJa', 1, 0),
+(3, '6731501002', '$2b$10$2/zhdbx5c8ZusfokPEocQedlif1syG9b4kLyCU.mOinQrCJh866ta', 1, 0),
+(4, '6731501003', '$2b$10$qOotoa19svidTI6Dfzmw2.Ufa7xwagm3CHQWUEiYsPqnSG1MkKU8e', 1, 0),
+(5, '6731501004', '$2b$10$pBmx3RzvRYh6pvDNFRoEf.U0ynnUpl2JBAhdfbAcII5pfk3T2yYTW', 1, 0),
+(6, '6731501005', '$2b$10$N1PJ.xwAS1zoUSgu8.Cm3.d36UNOUkUBymF9YHHRXO3L4B8qkv9cq', 1, 0),
+(7, '6731501006', '$2b$10$cA3hdykJ/XlOfWF6uB34p.VZfgR6pFALgF7cOgRNRK/mSxXSg9H/6', 1, 0),
+(8, '6731501007', '$2b$10$FpPoreRby.assIZBcwHUEeQGHSr7tVLbvZ3j8rrZEPzSXX.zbGllW', 1, 0),
+(9, '6731501008', '$2b$10$e7SlS.Re9kM2o.WOxx7qwuhGpgJP2h2kudoHXsMGy8NA32Qh80ZvS', 1, 0),
+(10, '6731501009', '$2b$10$Jr71rWtB95FpGmBunsvvu.N/SCIB9x9HmHv5mlQsmrhrBVVj/7Zyq', 1, 0),
+(11, '6731501010', '$2b$10$Zf9FP0nWHCxzU20Yl8twNOMy1PquKvxXv6ReIaE3UNumRjJOgL6cG', 1, 0),
+(12, '6731501011', '$2b$10$LpEQ7yRZg3tZhwPQRWdste1A0ZSR92SO0ZCec6Ntvq3ytzEBv/XY6', 1, 0),
+(13, '6731501012', '$2b$10$FLbR4hkSVoMDxD0Q2D2rY.ujGvprFljI.B8833mO3fJcPxlRmBMRe', 1, 0),
+(14, '6731501013', '$2b$10$96XUufPhY3h1uYiwH/DB1u6PDKzYKZMcCvRdvUeq7X9L1wRHkCa46', 1, 0),
+(15, '6731501014', '$2b$10$PW50A3YzHvDzTuDBYcadkOdOMFJDyhF6OjtYKAVYkUq8rRXAkD1qS', 1, 0),
+(16, '6731501015', '$2b$10$ddiO9LFyBLCHATcmBvz.kuHTmPR8.ho9HigvabJtr1JQ0164Ldst6', 1, 0),
+(17, '6731501016', '$2b$10$XXVX0OGxgbT6Sg/fKwOmVuQsNP9s8RCxu6HUctUABc9nIEi6avqqy', 1, 0),
+(18, '6731501017', '$2b$10$Ymx0/E60NEOCMjNRTRN1Ie1gadg1akPcJFhQDtIM0W7inbqAF9mIW', 1, 0),
+(19, '6731501018', '$2b$10$S.qf1E55go9kWBWTRnutlOTk25LnVD2kKONBycFIFrZf/OG28ZX7i', 1, 0),
+(20, '6731501019', '$2b$10$PWBAH.V4OgiTPFZ1D7CjWuzDmfemxJHUgbqOrKlaIT1h/XQpWk0MK', 1, 0),
+(21, '6731501020', '$2b$10$BKTFC/bMbLpYacv5he14.eeex20RKi7dklChM1LeSzIEhacoZWTZy', 1, 0),
+(22, '6731501021', '$2b$10$3mtBQprukWKN8TuyAjDBs.JUJoIv4nOcG6qC0KiBFRrScbOr5RSM2', 1, 0),
+(23, '6731501022', '$2b$10$Ly/GKRiPDlbk0JRbUGp8JunaD7uUC6T.xaEJwAALGBQlpdkbgm5/q', 1, 0),
+(24, '6731501023', '$2b$10$82xgCrftsw2PMnuW0/uibuYHlJIowPSVIjsgD1f4W9XmJFOqWdKOa', 1, 0),
+(25, '6731501024', '$2b$10$xy76bmO9aXHdmTNFeMRkjO48o0DdcnMJ0NSlvz/k2XUWX2kNhWlq6', 1, 0),
+(26, '6731501025', '$2b$10$JL7tICnPF5Oe3HPawKf80udY87dBkpEzOJ/wEagUzOMP6iCK67hwi', 1, 0),
+(27, '6731501026', '$2b$10$1Muse2GuQI3aaZx5fKdwaexk3eEWl7c8d4DsaUdmQ1E2DjGpzIrCG', 1, 0),
+(28, '6731501027', '$2b$10$IHJf3JvIoLH8fDXUti8us.XE3XlLUeXS2a7D91.pai.TODCUS1Tje', 1, 0),
+(29, '6731501028', '$2b$10$vbQYV0M.xJ/keG6AhCtIb.Ml1pkZEg8lGPFt/0O5KkD6Rq3Sv2uwC', 1, 0),
+(30, '6731501029', '$2b$10$nZJaam3qLU99kWZsz0hgReSgCapuo1Mp25gh0G38/lDyTMDx3Rvpa', 1, 0),
+(31, '6731501030', '$2b$10$cKA6iZzkcpK2xleaH..tJOZqb4f1qKPDS9h2g7x5NmGhO2GAPHLOK', 1, 0),
+(32, '6731501031', '$2b$10$qzDr5cWvp0ZILIDqTi/XHunrkAbHQwzeYaC5pNOAeoDRQCdIHBLmq', 1, 0),
+(33, '6731501032', '$2b$10$5jPO.JZKMFobSgF0HFoG2uJU9H6u1XBOvsA4G6ooOXjCNlnuTrtNe', 1, 0),
+(34, '6731501033', '$2b$10$iJFgja/x6ckRfHpFkqlOq.q/MrFxmT7AkQESu68VXWOcv/upL6IkS', 1, 0),
+(35, '6731501034', '$2b$10$T4/hw06VmO6cZ4sDHAgL/.oxDl8iS3FdDHLsebm5t/pO7ndsyWFpG', 1, 0),
+(36, '6731501035', '$2b$10$WakjlTfoFQKkhrQWDpz7GeRqDZubHquFIS4ZM8ht12JPpVWRjsoBS', 1, 0),
+(37, '6731501036', '$2b$10$/2QM3S8QHiKaTP.JXVmFGelPtAEU9yRZTjPdGNYFo1lHZrFNy6xcK', 1, 0),
+(38, '6731501037', '$2b$10$FzRPR1jRMsYirVgBJZjRxO8WGIttLNiQhknG95j4a6hPYOtWkAA5i', 1, 0),
+(39, '6731501038', '$2b$10$2MUitF69z0nLAyEPDqvkUe7zmGO.shSCg9DwV7RTM2Eo/Kr1WHZjm', 1, 0),
+(40, '6731501039', '$2b$10$bX3vrxp.ay5Q7dHx3L37LeGa6XZJ.ucmVUi5SxqZv02AIz/VGRDk2', 1, 0),
+(41, '6731501040', '$2b$10$FV8wqMJJu3CqAF3JcguEq.0WEQbxt1xGrXGNvz5osAFg1I4E95xdG', 1, 0),
+(42, '6731501041', '$2b$10$tzlxLm0UzeacUqIS7DXVkunbXmeTkIINwjUm4qRbMUi8fwjvV.Feu', 1, 0),
+(43, '6731501042', '$2b$10$4bdU6j3IchQs9QjcAupi7OH8bIZlq0F8V/JMrFnqaEXz6hQt2PKVC', 1, 0),
+(44, '6731501043', '$2b$10$SuX2XY8hmjUJ7sLp40PZ/eRejtoDz6CjtKVU6izXLufRvCEVh3G5S', 1, 0),
+(45, '6731501044', '$2b$10$ir5V14X.7rbEJdB8ga/theUrAHix5tUINKfGq5/czlDN4sklWD4SK', 1, 0),
+(46, '6731501045', '$2b$10$pnNJR58Yxmaf4WYLGqzim.PXwyX5FmeZ6zqlaCEp3ISiCgo90IXdu', 1, 0),
+(47, '6731501046', '$2b$10$NvZVglgolpJskgsAqXOXKOlm7LON0b/93JP543plk8nJ3gOgsYL7a', 1, 0),
+(48, '6731501047', '$2b$10$GpGyCQxIA80ElPb2xNZAHOyQR9lS1ao68jdFgC38x8iJP6U6bkWy2', 1, 0),
+(49, '6731501048', '$2b$10$/iU7otN4Wkt6JJhsVCQk6eDeH17EmFD/9ue6Q7u6gF/4n8pqjyehG', 1, 0),
+(50, '6731501049', '$2b$10$tmWF6qb2hin5MqV1Rh1UAeRChO8C0TRJtnI4w21cCPtHnOJ.ydVnm', 1, 0),
+(51, '6731501050', '$2b$10$PO/0BhfgnbWHtf4kqAbfgeS3emAXLL0xZ3wYKDbO3OT4kiwt3kQqu', 1, 0),
+(52, '6731501051', '$2b$10$rThbv.ByvbyatKs/a7L9.OHeHenNrfJoaPNGxyifws7M.YnFWkf2.', 1, 0),
+(53, '6731501052', '$2b$10$MwmYi6HCwM66alsVcfiVp.OV6.mMP8Hz4U154aDgH71gOy2lb/ISC', 1, 0);
+
+INSERT INTO `candidates` (`candidate_id`, `name`, `party`, `position`, `policy`, `image_url`, `created_at`, `email`, `password`, `status`, `vision`, `manifesto`, `votes`) VALUES
+(1, 'Mr. Thitipong Siri', 'Bright Horizon', 'President', 'Expand digital learning studios and partner labs with industry leaders.', 'https://randomuser.me/api/portraits/men/21.jpg', '2026-03-22 21:26:59', 'thitipong@mfu.ac.th', '$2b$10$WNqryhxMlYazMWX4TAK93uoqJQtBriZ73bS1Ot2oDS2AK2wZU0VKy', 1, 'A future-first MFU that embraces emerging technologies and inclusive learning.', 'Create accessible co-creation spaces where students and faculty can prototype future-ready projects together.', 2),
+(2, 'Ms. Anya Raksak', 'Student Voice', 'President', 'Ensure student council seats reflect every faculty and program.', 'https://randomuser.me/api/portraits/women/44.jpg', '2026-03-22 21:26:59', 'anya@mfu.ac.th', '$2b$10$ae9NOV/1nhiwFCndjf6MpeWd/KDFSL/Vlxra6ing9LRhVgzPtCj3G', 1, 'Every student is represented and empowered with transparent dialogue and support.', 'Host monthly town halls with clear follow-up tracking and democratize council budgets.', 3),
+(3, 'Dr. Somchai Wang', 'Innovation MFU', 'President', 'Improve digital services with AI-assisted assistants for campus services.', 'https://randomuser.me/api/portraits/men/32.jpg', '2026-03-22 21:26:59', 'somchai@mfu.ac.th', '$2b$10$sdZerdgAO6ddqbZVdDw9r.3jC.bIX79AHMy2LDim0.JJf6Ir.f.Sq', 1, 'An innovative MFU leading regional education through collaborative AI research.', 'Launch an innovation hub where interdisciplinary teams co-create human-centered digital tools.', 2),
+(4, 'Dr. Sirin Phayap', 'Innovation MFU', 'President', 'Improve student digital services', 'https://randomuser.me/api/portraits/men/44.jpg', '2026-03-16 23:56:53', 'sirin@mfu.ac.th', '$2b$10$tLXewSzuT/5C3nFvcwtFF.9UQfDWyLHS5eXfZNCVlAX7svpUi27H6', 1, 'My candidacy is built on the belief that a university should champion digital equity.', 'Deploy hands-on labs and learning pods so every student masters the AI-enabled workplace.', 1),
+(5, 'Ms. Piyawan Raksak', 'Student Voice', 'President', 'Better student representation', 'https://randomuser.me/api/portraits/women/65.jpg', '2026-03-16 23:56:53', 'piyawan@mfu.ac.th', '$2b$10$vG6LcclFo4byD7/w7xzoUOa91aPpN6ZhYK7TAHFENUEWkhFZFuhJe', 1, 'A compassionate campus community centered on wellbeing, trust, and inclusion.', 'Fund peer counselling, expand wellness programs, and open transparent budget channels.', 2),
+(6, 'Mr. Thanat P.', 'Green Future', 'President', 'Making MFU a sustainable university', 'https://randomuser.me/api/portraits/men/65.jpg', '2026-03-17 00:40:03', 'thanat@mfu.ac.th', '$2b$10$y4sD/OSlzG6kE9t0lcEz7O2yNW09RalLmeAtQjSqFU/T5ng9HY5SG', 1, 'A campus that honours nature and student wellbeing every day.', 'Implement campus-wide zero-waste initiatives and rewild shared learning spaces.', 2),
+(7, 'Joch Washer', 'Education', 'President', 'Go with flow', 'https://www.singulart.com/blog/wp-content/uploads/', '2026-03-23 22:48:33', 'joch@mfu.ac.th', '$2b$10$M9PfdVwVXPMH5kLAbx2.puuBsc3IdxYTJfa.IaYeCLhETwy9FI2w.', 1, 'I don''t have vision', 'nothing', 8);
+
+INSERT INTO `votes` (`vote_id`, `voter_id`, `candidate_id`, `vote_time`) VALUES
+(30, 27, 1, '2026-03-26 02:51:43'),
+(31, 28, 6, '2026-03-27 01:04:38'),
+(32, 29, 1, '2026-03-27 01:05:05'),
+(33, 30, 2, '2026-03-27 01:05:27'),
+(34, 31, 5, '2026-03-27 01:05:50'),
+(35, 32, 7, '2026-03-27 01:06:15'),
+(36, 33, 3, '2026-03-27 01:06:46'),
+(37, 34, 4, '2026-03-27 01:07:10'),
+(38, 35, 3, '2026-03-27 01:07:30'),
+(39, 36, 2, '2026-03-27 01:07:52'),
+(40, 37, 7, '2026-03-27 01:08:16'),
+(41, 38, 5, '2026-03-27 01:08:38'),
+(42, 39, 2, '2026-03-27 01:08:59'),
+(43, 40, 6, '2026-03-27 01:09:30'),
+(44, 41, 7, '2026-03-27 01:11:37'),
+(45, 42, 7, '2026-03-27 01:11:58'),
+(46, 43, 7, '2026-03-27 01:12:21'),
+(47, 44, 7, '2026-03-27 01:12:41'),
+(48, 45, 7, '2026-03-27 01:13:02'),
+(49, 46, 7, '2026-03-27 01:13:22');
+
+ALTER TABLE `admins` AUTO_INCREMENT = 2;
+ALTER TABLE `candidates` AUTO_INCREMENT = 8;
+ALTER TABLE `voters` AUTO_INCREMENT = 54;
+ALTER TABLE `votes` AUTO_INCREMENT = 50;
+
+COMMIT;
+
+-- Quick login reference for local/demo use
+-- admin / admin123
+-- thitipong@mfu.ac.th / SiriSecure!26
+-- anya@mfu.ac.th / VoicePulse$26
+-- somchai@mfu.ac.th / InnovateEdge#26
+-- sirin@mfu.ac.th / DigitalPioneer@26
+-- piyawan@mfu.ac.th / CommunityFirst%26
+-- thanat@mfu.ac.th / GreenFuture#26
+-- joch@mfu.ac.th / GoWithFlow!26

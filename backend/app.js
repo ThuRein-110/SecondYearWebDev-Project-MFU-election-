@@ -7,6 +7,51 @@ const bcrypt = require('bcrypt');
 const db = require('./db');
 
 const app = express();
+const BCRYPT_ROUNDS = 10;
+const BCRYPT_PREFIX = '$2';
+
+function isBcryptHash(value) {
+    return typeof value === 'string' && value.startsWith(BCRYPT_PREFIX);
+}
+
+function queryAsync(sql, params = []) {
+    return new Promise((resolve, reject) => {
+        db.query(sql, params, (err, rows) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            resolve(rows);
+        });
+    });
+}
+
+async function migrateExistingSecrets() {
+    try {
+        const voters = await queryAsync('SELECT id, laser_id FROM voters');
+        for (const voter of voters) {
+            if (!voter?.laser_id || isBcryptHash(voter.laser_id)) continue;
+            const hashedLaserId = await bcrypt.hash(String(voter.laser_id), BCRYPT_ROUNDS);
+            await queryAsync('UPDATE voters SET laser_id = ? WHERE id = ?', [hashedLaserId, voter.id]);
+        }
+
+        const candidates = await queryAsync('SELECT candidate_id, password FROM candidates');
+        for (const candidate of candidates) {
+            if (!candidate?.password || isBcryptHash(candidate.password)) continue;
+            const hashedPassword = await bcrypt.hash(String(candidate.password), BCRYPT_ROUNDS);
+            await queryAsync('UPDATE candidates SET password = ? WHERE candidate_id = ?', [hashedPassword, candidate.candidate_id]);
+        }
+
+        const admins = await queryAsync('SELECT id, password FROM admins');
+        for (const admin of admins) {
+            if (!admin?.password || isBcryptHash(admin.password)) continue;
+            const hashedPassword = await bcrypt.hash(String(admin.password), BCRYPT_ROUNDS);
+            await queryAsync('UPDATE admins SET password = ? WHERE id = ?', [hashedPassword, admin.id]);
+        }
+    } catch (error) {
+        console.error('Secret migration failed', error);
+    }
+}
 
 app.use(cors({
     origin: "http://localhost:3000",
@@ -25,20 +70,32 @@ app.use(session({
 /* -------------------- LOGIN -------------------- */
 
 // Voter login
-app.post('/login/voter', (req, res) => {
+app.post('/login/voter', async (req, res) => {
     const { citizen_id, laser_id } = req.body;
+
+    if (!citizen_id || !laser_id) {
+        return res.json({ success: false, message: 'Missing credentials' });
+    }
 
     const sql = `
     SELECT * FROM voters 
-    WHERE citizen_id=? AND laser_id=? AND status=1
+    WHERE citizen_id=? AND status=1
+    LIMIT 1
     `;
 
-    db.query(sql, [citizen_id, laser_id], (err, result) => {
+    db.query(sql, [citizen_id], async (err, result) => {
 
         if (err) return res.json({ success:false });
 
         if(result.length > 0){
-            const voterId = result[0].voter_id ?? result[0].id ?? result[0].voterId;
+            const voter = result[0];
+            const laserMatch = await bcrypt.compare(laser_id, voter.laser_id);
+
+            if (!laserMatch) {
+                return res.json({ success:false, message:"Invalid voter login" });
+            }
+
+            const voterId = voter.voter_id ?? voter.id ?? voter.voterId;
 
             req.session.user = {
                 type: 'voter',
@@ -67,22 +124,28 @@ app.post('/login/candidate', (req,res)=>{
 
     const candidateId = /^[0-9]+$/.test(identifier) ? Number(identifier) : null;
     const sql = candidateId !== null
-        ? `SELECT * FROM candidates WHERE (candidate_id=? OR email=?) AND password=? AND status=1 LIMIT 1`
-        : `SELECT * FROM candidates WHERE email=? AND password=? AND status=1 LIMIT 1`;
+        ? `SELECT * FROM candidates WHERE (candidate_id=? OR email=?) AND status=1 LIMIT 1`
+        : `SELECT * FROM candidates WHERE email=? AND status=1 LIMIT 1`;
 
     const params = candidateId !== null
-        ? [candidateId, identifier, password]
-        : [identifier, password];
+        ? [candidateId, identifier]
+        : [identifier];
 
-    db.query(sql, params, (err,result)=>{
+    db.query(sql, params, async (err,result)=>{
 
         if(err) return res.json({ success:false, message:"Database error" });
 
         if(result.length>0){
+            const candidate = result[0];
+            const passwordMatch = await bcrypt.compare(password, candidate.password);
+
+            if (!passwordMatch) {
+                return res.json({ success:false, message:"Invalid credentials" });
+            }
 
             req.session.user={
                 type:'candidate',
-                candidate_id: result[0].candidate_id
+                candidate_id: candidate.candidate_id
             };
 
             res.json({ success:true });
@@ -423,7 +486,7 @@ app.post('/admin/toggle-voter',(req,res)=>{
 
 });
 
-app.post('/admin/register-voter', (req, res) => {
+app.post('/admin/register-voter', async (req, res) => {
     if (!req.session.user || req.session.user.type !== 'admin') {
         return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
@@ -434,9 +497,11 @@ app.post('/admin/register-voter', (req, res) => {
         return res.status(400).json({ success: false, message: 'Citizen ID and Laser ID are required.' });
     }
 
+    const hashedLaserId = await bcrypt.hash(String(laser_id).trim(), BCRYPT_ROUNDS);
+
     db.query(
         'INSERT INTO voters (citizen_id, laser_id, status, has_voted) VALUES (?, ?, 0, 0)',
-        [citizen_id, laser_id],
+        [citizen_id, hashedLaserId],
         (err) => {
             if (err) {
                 console.error('Failed to register voter', err);
@@ -450,7 +515,7 @@ app.post('/admin/register-voter', (req, res) => {
     );
 });
 
-app.post('/admin/register-candidate', (req, res) => {
+app.post('/admin/register-candidate', async (req, res) => {
     if (!req.session.user || req.session.user.type !== 'admin') {
         return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
@@ -476,6 +541,7 @@ app.post('/admin/register-candidate', (req, res) => {
     const normalizedVision = vision ? String(vision).trim() : null;
     const normalizedManifesto = manifesto ? String(manifesto).trim() : null;
     const normalizedPolicy = normalizedVision || normalizedManifesto || null;
+    const hashedPassword = await bcrypt.hash(String(password), BCRYPT_ROUNDS);
 
     db.query(
         `
@@ -490,7 +556,7 @@ app.post('/admin/register-candidate', (req, res) => {
             normalizedPolicy,
             image_url ? String(image_url).trim() : null,
             String(email).trim(),
-            String(password),
+            hashedPassword,
             normalizedVision,
             normalizedManifesto
         ],
@@ -725,7 +791,7 @@ app.post('/admin/toggle-voting',(req,res)=>{
 
 /* -------------------- CANDIDATE UPDATE -------------------- */
 
-app.post('/candidate/register', (req, res) => {
+app.post('/candidate/register', async (req, res) => {
     const {
         name,
         email,
@@ -747,6 +813,7 @@ app.post('/candidate/register', (req, res) => {
     const normalizedVision = vision ? String(vision).trim() : null;
     const normalizedManifesto = manifesto ? String(manifesto).trim() : null;
     const normalizedPolicy = normalizedVision || normalizedManifesto || null;
+    const hashedPassword = await bcrypt.hash(String(password), BCRYPT_ROUNDS);
 
     db.query(
         `
@@ -761,7 +828,7 @@ app.post('/candidate/register', (req, res) => {
             normalizedPolicy,
             image_url ? String(image_url).trim() : null,
             String(email).trim(),
-            String(password),
+            hashedPassword,
             normalizedVision,
             normalizedManifesto
         ],
@@ -1084,4 +1151,5 @@ app.post('/vote', (req, res) => {
 
 app.listen(3000,'0.0.0.0',()=>{
     console.log("Server running on port 3000");
+    migrateExistingSecrets();
 });

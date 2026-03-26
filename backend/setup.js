@@ -1,4 +1,6 @@
 const mysql = require('mysql2');
+const bcrypt = require('bcrypt');
+const BCRYPT_ROUNDS = 10;
 
 const connection = mysql.createConnection({
     host: 'localhost',
@@ -110,7 +112,7 @@ function ensureCandidateColumns(cb) {
 
 function insertDefaultData() {
     const staticInserts = [
-        { query: 'INSERT IGNORE INTO admins (username, password) VALUES (?, ?)', params: ['admin', 'admin123'] },
+        { query: 'INSERT IGNORE INTO admins (username, password) VALUES (?, ?)', params: ['admin', bcrypt.hashSync('admin123', BCRYPT_ROUNDS)] },
         { query: 'INSERT IGNORE INTO settings (id, voting_enabled) VALUES (?, ?)', params: [1, 1] }
     ];
 
@@ -255,7 +257,8 @@ function insertDefaultData() {
     });
 
     voterSeeds.forEach((voter, idx) => {
-        connection.query(voterSeedQuery, [voter.citizen_id, voter.laser_id], (err) => {
+        const hashedLaserId = bcrypt.hashSync(voter.laser_id, BCRYPT_ROUNDS);
+        connection.query(voterSeedQuery, [voter.citizen_id, hashedLaserId], (err) => {
             if (err) {
                 console.error(`Voter seed error ${idx + 1}:`, err);
             } else {
@@ -274,7 +277,7 @@ function insertDefaultData() {
             candidate.policy,
             candidate.image_url,
             candidate.email,
-            candidate.password,
+            bcrypt.hashSync(candidate.password, BCRYPT_ROUNDS),
             1,
             candidate.vision,
             candidate.manifesto,
