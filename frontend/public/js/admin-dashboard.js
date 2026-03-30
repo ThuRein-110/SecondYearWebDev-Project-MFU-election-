@@ -15,6 +15,10 @@ const closeButton = document.querySelector('.primary');
 const menuToggle = document.getElementById('menu-toggle');
 const sidebar = document.getElementById('admin-sidebar');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
+const adminSections = document.querySelectorAll('.admin-section');
+const manageSection = document.getElementById('manage');
+const votersListCard = document.getElementById('voters-list');
+const candidatesListCard = document.getElementById('candidates-list');
 
 const chartPalette = ['#a855f7', '#ec4899', '#e11d48', '#8b5cf6', '#22c55e', '#4ade80', '#14b8a6', '#3b82f6'];
 let chartState = null;
@@ -22,12 +26,12 @@ let lastVotePerformance = { labels: [], series: [] };
 let standingsResults = [];
 let voterResults = [];
 let candidateResults = [];
+let currentSection = 'overview';
 
 navItems.forEach(link => {
     link.addEventListener('click', event => {
         event.preventDefault();
-        setActiveNav(link);
-        scrollToSection(link.dataset.target);
+        showSection(link.dataset.target);
         closeSidebarDrawer();
     });
 });
@@ -37,10 +41,63 @@ function setActiveNav(activeLink) {
     activeLink.classList.add('active');
 }
 
-function scrollToSection(id) {
-    const target = document.getElementById(id);
-    if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+function resolveSectionId(targetId) {
+    if (targetId === 'voters-list' || targetId === 'candidates-list') {
+        return 'manage';
+    }
+
+    return targetId;
+}
+
+function updateManageView(targetId) {
+    if (!manageSection || !votersListCard || !candidatesListCard) {
+        return;
+    }
+
+    const isSinglePanel = targetId === 'voters-list' || targetId === 'candidates-list';
+    manageSection.classList.toggle('manage--single', isSinglePanel);
+
+    votersListCard.classList.toggle('is-visible', targetId === 'voters-list');
+    candidatesListCard.classList.toggle('is-visible', targetId === 'candidates-list');
+}
+
+function syncSectionHash(targetId) {
+    if (!window.history?.replaceState) {
+        return;
+    }
+
+    const nextHash = targetId ? `#${targetId}` : '#overview';
+    window.history.replaceState(null, '', nextHash);
+}
+
+function showSection(targetId = 'overview') {
+    const sectionId = resolveSectionId(targetId);
+    const targetSection = document.getElementById(sectionId);
+
+    if (!targetSection) {
+        return;
+    }
+
+    currentSection = targetId;
+
+    adminSections.forEach(section => {
+        section.classList.toggle('active', section.id === sectionId);
+    });
+
+    updateManageView(targetId);
+
+    const activeNav = Array.from(navItems).find(item => item.dataset.target === targetId)
+        || Array.from(navItems).find(item => item.dataset.target === sectionId);
+
+    if (activeNav) {
+        setActiveNav(activeNav);
+    }
+
+    syncSectionHash(targetId);
+    window.scrollTo({ top: 0, behavior: 'auto' });
+
+    if (sectionId === 'overview' && ((lastVotePerformance.labels || []).length || (lastVotePerformance.series || []).length)) {
+        drawVotePerformanceChart(lastVotePerformance);
     }
 }
 
@@ -762,6 +819,7 @@ async function logout() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    showSection(window.location.hash.replace('#', '') || 'overview');
     loadDashboard();
     loadVoters();
     loadCandidates();
@@ -827,7 +885,9 @@ window.addEventListener('resize', () => {
     renderCandidatesTable(filterCandidates());
 
     if ((lastVotePerformance.labels || []).length || (lastVotePerformance.series || []).length) {
-        drawVotePerformanceChart(lastVotePerformance);
+        if (resolveSectionId(currentSection) === 'overview') {
+            drawVotePerformanceChart(lastVotePerformance);
+        }
     }
 });
 

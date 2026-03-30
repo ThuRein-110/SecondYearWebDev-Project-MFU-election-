@@ -44,8 +44,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const policyText = candidate.policy && candidate.policy !== "NULL" ? candidate.policy.trim() : "Policy details coming soon.";
             const summaryText = policyText.split(/[.!?]/).find(Boolean) || "Committed to MFU.";
 
-            document.getElementById("profile-img").src =
-                candidate.image_url || "https://via.placeholder.com/120";
+            const profileImageEl = document.getElementById("profile-img");
+            if (typeof attachCandidateAvatar === "function") {
+                attachCandidateAvatar(profileImageEl, candidate);
+            } else if (profileImageEl) {
+                profileImageEl.src = String(candidate.image_url || "").trim();
+            }
             document.getElementById("name").innerText =
                 candidate.name || "Unknown Candidate";
             document.getElementById("candidate-id").innerText =

@@ -355,6 +355,7 @@ body {
 }
 </style>
     <link rel="stylesheet" href="public/css/responsive.css">
+    <script src="public/js/candidate-avatar.js"></script>
 </head>
 <body>
 <div class="glow"></div>
@@ -373,7 +374,7 @@ body {
 
     <div class="card">
         <div class="selected-candidate">
-            <img id="candidate-img" alt="Candidate photo" src="https://via.placeholder.com/72" />
+            <img id="candidate-img" alt="Candidate photo" src="" />
             <div class="text">
                 <h3 id="candidate-name">Loading candidate...</h3>
                 <span id="candidate-id">ID: —</span>
@@ -473,7 +474,11 @@ async function loadReceipt(){
             throw new Error(payload.error);
         }
 
-        candidateImage.src = payload.image_url || candidateImage.src;
+        if (typeof attachCandidateAvatar === "function") {
+            attachCandidateAvatar(candidateImage, payload);
+        } else {
+            candidateImage.src = payload.image_url || candidateImage.src;
+        }
         candidateName.textContent = payload.name || "Candidate";
         candidateIdEl.textContent = `ID: ${payload.candidate_id || payload.id || "—"}`;
         transactionEl.textContent = requestedVoteId || generateTransactionId();

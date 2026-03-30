@@ -310,13 +310,13 @@ function renderCandidateGrid(candidates) {
 function candidateCardMarkup(candidate) {
     const votes = candidate.votes || 0;
     const badge = `CAN-${String(candidate.candidate_id).padStart(3, "0")}`;
+    const imageUrl = resolveCandidateImage(candidate);
 
     return `
         <div class="candidate">
-            <img src="${resolveCandidateImage(candidate)}"
+            <img src="${imageUrl}"
                 class="candidate-photo"
-                alt="${candidate.name || "Candidate photo"}"
-                onerror="this.src='https://randomuser.me/api/portraits/men/1.jpg'">
+                alt="${candidate.name || "Candidate photo"}">
             <div class="candidate-badge">${badge}</div>
             <h4>${candidate.name || "Unknown Candidate"}</h4>
             <p class="candidate-party">${candidate.party || "Independent"}</p>
@@ -340,11 +340,10 @@ function candidateCardMarkup(candidate) {
 }
 
 function resolveCandidateImage(candidate) {
-    if (candidate.image_url && candidate.image_url.startsWith("http")) {
-        return candidate.image_url;
+    if (typeof getCandidateAvatarUrl === "function") {
+        return getCandidateAvatarUrl(candidate);
     }
-    const seed = Number(candidate.candidate_id) || 1;
-    return `https://randomuser.me/api/portraits/men/${seed % 90}.jpg`;
+    return String(candidate?.image_url || "").trim();
 }
 
 function viewProfile(candidateId) {

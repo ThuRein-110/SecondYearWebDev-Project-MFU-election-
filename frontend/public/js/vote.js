@@ -7,13 +7,13 @@ async function loadCandidates() {
 
 function candidateVoteCard(candidate) {
     const votes = candidate.votes || 0;
+    const imageUrl = resolveCandidateImage(candidate);
     return `
         <article class="vote-card">
             <img
-                src="${resolveCandidateImage(candidate)}"
+                src="${imageUrl}"
                 alt="${candidate.name || 'Candidate portrait'}"
                 class="candidate-photo"
-                onerror="this.src='https://randomuser.me/api/portraits/men/1.jpg'"
             />
             <div class="vote-card-body">
                 <div class="candidate-headline">
@@ -34,11 +34,10 @@ function candidateVoteCard(candidate) {
 }
 
 function resolveCandidateImage(candidate) {
-    if (candidate.image_url && candidate.image_url.startsWith('http')) {
-        return candidate.image_url;
+    if (typeof getCandidateAvatarUrl === 'function') {
+        return getCandidateAvatarUrl(candidate);
     }
-    const seed = Number(candidate.candidate_id) || 1;
-    return `https://randomuser.me/api/portraits/men/${seed % 90}.jpg`;
+    return String(candidate?.image_url || '').trim();
 }
 
 function viewCandidate(candidateId) {

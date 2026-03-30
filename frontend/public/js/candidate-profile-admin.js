@@ -67,8 +67,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const statusText = Number(candidate.status) === 1 ? "Active" : "Disabled";
         const summaryText = firstSentence(policyText) || "Candidate details are available for committee review.";
 
-        if (imageEl) {
-            imageEl.src = candidate.image_url || "https://via.placeholder.com/120";
+        if (typeof attachCandidateAvatar === "function") {
+            attachCandidateAvatar(imageEl, candidate);
+        } else if (imageEl) {
+            imageEl.src = String(candidate.image_url || "").trim();
         }
 
         if (nameEl) {

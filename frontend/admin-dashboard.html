@@ -42,7 +42,10 @@
             <div class="sidebar-head">
                 <div class="brand">
                     <div class="brand-mark">
-                        <i class="fa-solid fa-shield-halved"></i>
+                        <img
+                            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsUV1OLFzikxsMB_iue3priwGmciZc_MEnGw&s"
+                            alt="MFU University"
+                        >
                     </div>
                     <div class="brand-copy">
                         <span>MFU Election</span>
@@ -54,10 +57,6 @@
                 <a href="#overview" class="nav-item active" data-target="overview">
                     <i class="fa-solid fa-chart-line"></i>
                     <span>Admin Overview</span>
-                </a>
-                <a href="#actions" class="nav-item" data-target="actions">
-                    <i class="fa-solid fa-bolt"></i>
-                    <span>Actions</span>
                 </a>
                 <a href="#register-voter" class="nav-item" data-target="register-voter">
                     <i class="fa-solid fa-id-card"></i>
@@ -90,7 +89,7 @@
             </div>
         </aside>
         <main class="main">
-            <section id="overview" class="overview">
+            <section id="overview" class="overview admin-section active">
                 <div class="overview-headline">
                     <div>
                         <h1>System Overview</h1>
@@ -140,43 +139,7 @@
                 </div>
             </section>
 
-            <section id="actions" class="actions" aria-label="Administrative Actions">
-                <div class="section-head">
-                    <h2>Administrative Actions</h2>
-                </div>
-                <div class="action-grid">
-                    <button class="action-card" onclick="scrollToSection('manage')">
-                        <div>
-                            <strong>Manage Database</strong>
-                            <p>Add new voter IDs, laser IDs, and candidate profiles to the system.</p>
-                        </div>
-                        <span>User Management →</span>
-                    </button>
-                    <button class="action-card" onclick="exportResults()">
-                        <div>
-                            <strong>Export Results</strong>
-                            <p>Download the current voting logs in CSV or PDF format for committee review.</p>
-                        </div>
-                        <span>Download Reports →</span>
-                    </button>
-                    <button class="action-card" onclick="document.getElementById('register-voter-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' })">
-                        <div>
-                            <strong>Register Voter</strong>
-                            <p>Create a new voter account with Citizen ID and Laser ID while keeping default voting status values.</p>
-                        </div>
-                        <span>Open Registration →</span>
-                    </button>
-                    <button class="action-card" onclick="document.getElementById('register-candidate-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' })">
-                        <div>
-                            <strong>Register Candidate</strong>
-                            <p>Create a candidate account with campaign details, login email, and profile information from the admin dashboard.</p>
-                        </div>
-                        <span>Open Candidate Form →</span>
-                    </button>
-                </div>
-            </section>
-
-            <section id="register-voter" class="manage register-panel" aria-label="Register Voter">
+            <section id="register-voter" class="manage register-panel admin-section" aria-label="Register Voter">
                 <div class="section-head">
                     <h2>Register Voter</h2>
                     <p>Create a voter account using only Citizen ID and Laser ID. New voter accounts start disabled and not yet voted.</p>
@@ -194,7 +157,7 @@
                 </form>
             </section>
 
-            <section id="register-candidate" class="manage register-panel" aria-label="Register Candidate">
+            <section id="register-candidate" class="manage register-panel admin-section" aria-label="Register Candidate">
                 <div class="section-head">
                     <h2>Register Candidate</h2>
                     <p>Create a candidate profile directly from the admin dashboard using campaign details, candidate login credentials, and optional profile content. New candidate accounts start disabled.</p>
@@ -236,7 +199,7 @@
                 </form>
             </section>
 
-            <section id="manage" class="manage" aria-label="Manage Users">
+            <section id="manage" class="manage admin-section" aria-label="Manage Users">
                 <div class="section-head">
                     <h2>Manage Users</h2>
                     <p>Add, enable, or disable voters and candidates in one view.</p>

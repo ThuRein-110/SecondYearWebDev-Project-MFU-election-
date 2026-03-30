@@ -79,24 +79,26 @@ function setStoredProfileImage(candidateId, imageSource) {
 }
 
 function applyProfileImage(imageSource, candidateId = candidateProfile?.candidate_id) {
-    if (!imageSource) return;
     const profileAvatar = document.getElementById('candidate-avatar');
-    if (profileAvatar) profileAvatar.src = imageSource;
-
     const dashboardAvatar = document.getElementById('dashboard-avatar');
-    if (dashboardAvatar) dashboardAvatar.src = imageSource;
+    const resolvedSource = String(imageSource || '').trim()
+        || (typeof getCandidateAvatarUrl === 'function' ? getCandidateAvatarUrl(candidateProfile) : '');
+
+    if (profileAvatar) profileAvatar.src = resolvedSource;
+    if (dashboardAvatar) dashboardAvatar.src = resolvedSource;
 
     if (candidateProfile) {
-        candidateProfile.image_url = imageSource;
+        candidateProfile.image_url = resolvedSource;
     }
 
     if (candidateId) {
-        setStoredProfileImage(candidateId, imageSource);
+        setStoredProfileImage(candidateId, resolvedSource);
     }
 }
 
 function getResolvedProfileImage(profile) {
-    return getStoredProfileImage(profile?.candidate_id) || profile?.image_url || '';
+    return getStoredProfileImage(profile?.candidate_id)
+        || (typeof getCandidateAvatarUrl === 'function' ? getCandidateAvatarUrl(profile) : String(profile?.image_url || '').trim());
 }
 
 function openProfileImageFilePicker() {
@@ -256,9 +258,12 @@ function updateDashboardSummary(data) {
     const votesEl = document.getElementById('dashboard-votes');
     if (votesEl) votesEl.textContent = data.votes.toLocaleString();
 
-    const resolvedImage = getStoredProfileImage(data.candidateId) || data.image_url;
+    const resolvedImage = getStoredProfileImage(data.candidateId)
+        || (typeof getCandidateAvatarUrl === 'function'
+            ? getCandidateAvatarUrl({ candidate_id: data.candidateId, name: data.name, image_url: data.image_url })
+            : String(data.image_url || '').trim());
     const avatar = document.getElementById('dashboard-avatar');
-    if (avatar && resolvedImage) avatar.src = resolvedImage;
+    if (avatar) avatar.src = resolvedImage;
 }
 
 function formatChartTimeLabel(label) {
