@@ -186,16 +186,36 @@ function normalizeVotePerformanceData(payload) {
     const rawLabels = Array.isArray(payload.labels) ? payload.labels : [];
     const rawSeries = Array.isArray(payload.series) ? payload.series : [];
 
+    if (rawLabels.length) {
+        const windowSize = rawLabels.length > 12 ? 10 : rawLabels.length;
+        const startIndex = Math.max(0, rawLabels.length - windowSize);
+        const recentLabels = rawLabels.slice(startIndex);
+        const recentSeries = rawSeries.map(item => ({
+            ...item,
+            values: recentLabels.map((_, offset) => Number(item.values?.[startIndex + offset] || 0))
+        }));
+
+        return {
+            labels: recentLabels,
+            series: recentSeries
+        };
+    }
+
     const bucketLabels = buildDynamicBucketLabels(rawLabels);
+    const bucketTimes = bucketLabels.map(label => new Date(label).getTime());
 
     const normalizedSeries = rawSeries.map(item => {
-        const values = bucketLabels.map(bucketIso => {
-            const bucketTime = new Date(bucketIso).getTime();
+        const values = bucketLabels.map((_, bucketIndex) => {
+            const bucketStart = bucketTimes[bucketIndex];
+            const nextBucketStart = bucketTimes[bucketIndex + 1];
+            const bucketEnd = Number.isFinite(nextBucketStart)
+                ? nextBucketStart
+                : bucketStart + (60 * 60 * 1000);
             let latestValue = 0;
 
             rawLabels.forEach((label, index) => {
                 const pointTime = new Date(label).getTime();
-                if (!Number.isNaN(pointTime) && pointTime <= bucketTime) {
+                if (!Number.isNaN(pointTime) && pointTime < bucketEnd) {
                     latestValue = Number(item.values?.[index] || 0);
                 }
             });
@@ -320,7 +340,7 @@ function drawVotePerformanceChart(payload) {
     }
 
     const xStep = labels.length > 1 ? plotWidth / (labels.length - 1) : 0;
-    const labelSkip = labels.length > 7 ? Math.ceil(labels.length / 7) : 1;
+    const visibleLabelIndexes = getVisibleChartLabelIndexes(labels, parentWidth);
     const seriesCoordinates = series.map(item => ({
         ...item,
         points: labels.map((label, index) => {
@@ -338,12 +358,12 @@ function drawVotePerformanceChart(payload) {
     }));
 
     ctx.fillStyle = '#8ea0bb';
-    ctx.textAlign = 'center';
     ctx.font = '11px Inter, sans-serif';
-    labels.forEach((label, index) => {
+    visibleLabelIndexes.forEach((index) => {
+        const label = labels[index];
         const x = padding.left + (labels.length > 1 ? index * xStep : plotWidth / 2);
-        if (index % labelSkip !== 0 && index !== labels.length - 1) return;
-        ctx.fillText(formatTimestampLabel(label), x, height - 14);
+        ctx.textAlign = index === 0 ? 'left' : index === labels.length - 1 ? 'right' : 'center';
+        ctx.fillText(formatTimestampLabel(label, labels[index - 1]), x, height - 14);
     });
 
     seriesCoordinates.forEach(item => {
@@ -416,9 +436,28 @@ function formatTimestampLabel(value) {
 
     return date.toLocaleTimeString([], {
         hour: 'numeric',
-        minute: '2-digit',
         hour12: true
     });
+}
+
+function getVisibleChartLabelIndexes(labels, chartWidth) {
+    if (!Array.isArray(labels) || !labels.length) {
+        return [];
+    }
+
+    if (labels.length === 1) {
+        return [0];
+    }
+
+    const maxLabels = chartWidth < 540 ? 4 : chartWidth < 760 ? 5 : 6;
+    const step = Math.max(1, Math.ceil((labels.length - 1) / Math.max(1, maxLabels - 1)));
+    const visible = new Set([0, labels.length - 1]);
+
+    for (let index = step; index < labels.length - 1; index += step) {
+        visible.add(index);
+    }
+
+    return Array.from(visible).sort((a, b) => a - b);
 }
 
 function drawChartHover(activePoint) {

@@ -654,7 +654,7 @@ app.get('/admin/vote-performance', (req, res) => {
     }
 
     const candidateSql = `
-        SELECT candidate_id, name, status
+        SELECT candidate_id, name, status, COALESCE(votes, 0) AS total_votes
         FROM candidates
         ORDER BY candidate_id
     `;
@@ -732,7 +732,13 @@ app.get('/admin/vote-performance', (req, res) => {
 
             const series = (candidates || []).map(candidate => {
                 const candidateSeries = seriesMap.get(candidate.candidate_id) || [];
-                const paddedSeries = fallbackTimestamps.map((_, index) => candidateSeries[index] || 0);
+                const recordedTotal = Number(candidateSeries[candidateSeries.length - 1] || 0);
+                const currentTotal = Number(candidate.total_votes || 0);
+                const baselineOffset = Math.max(0, currentTotal - recordedTotal);
+                const paddedSeries = fallbackTimestamps.map((_, index) => {
+                    const recordedValue = Number(candidateSeries[index] || 0);
+                    return recordedValue + baselineOffset;
+                });
                 return {
                     candidate_id: candidate.candidate_id,
                     name: candidate.name,
